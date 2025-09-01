@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
 import { RealtimeAgent, RealtimeSession } from '@openai/agents/realtime';
 import voiceAgent from '../services/VoiceAgentManager.js';
