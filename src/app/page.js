@@ -1,6 +1,6 @@
 'use client'
-import MasterMindCouncil from '../components/MasterMindCouncil'
+import MasterMindCouncil from "../components/MasterMindCouncil";
 
-export default function Home() {
-  return <MasterMindCouncil />
+export default function Page() {
+  return <MasterMindCouncil />;
 }
