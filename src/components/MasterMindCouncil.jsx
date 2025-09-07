@@ -568,25 +568,25 @@ const MasterMindCouncil = () => {
         <div className="max-w-4xl mx-auto mb-12">
   <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-2xl p-1">
     <div className="bg-black/80 backdrop-blur-lg rounded-2xl overflow-hidden">
-      <div className="flex flex-row">
+      <div className="flex flex-col">
         {/* Photo Section - 40% */}
-        <div className="md:w-2/5 relative">
+        <div className="w-full relative">
           <img 
             src="/images/dr-kai.png" 
             alt="Dr. Kai"
-            className="w-full h-64 md:h-full object-cover"
+            className="w-full h-80 object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
         </div>
         
         {/* Content Section - 60% */}
-        <div className="md:w-3/5 p-8 text-center md:text-left">
-          <BreathingAvatar
-            emoji="🧬"
-            gradient="from-cyan-400 via-blue-500 to-purple-600"
-            size="md"
-            active={true}
-          />
+        <div className="w-full p-8 text-center">
+           <BreathingAvatar
+             emoji="🧬"
+             gradient="from-cyan-400 via-blue-500 to-purple-600"
+             size="md"
+             active={true}
+           />
           <h2 className="text-3xl font-semibold mt-4 mb-2">Dr. Kai</h2>
           <p className="text-cyan-300 text-lg mb-6">Executive Life Coach</p>
           
