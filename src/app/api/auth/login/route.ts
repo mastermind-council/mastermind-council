@@ -61,6 +61,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Update last login time
+    await sql`
+      UPDATE users 
+      SET last_login_at = NOW() 
+      WHERE id = ${user.id}
+    `;
+    console.log('⏰ Updated last_login_at for user ID:', user.id);
+
     // Generate token
     const token = generateToken(user.id);
     console.log('🎟️ JWT token generated for user ID:', user.id);
