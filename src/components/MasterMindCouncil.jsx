@@ -581,14 +581,15 @@ const MasterMindCouncil = () => {
   
   {/* Content Section - 30% */}
   <div className="w-full h-[30%] p-4 text-center flex flex-col justify-center">
+   <div className="mt-2">   
     <BreathingAvatar
       emoji="🧬"
       gradient="from-cyan-400 via-blue-500 to-purple-600"
       size="sm"
       active={true}
     />
-    <h2 className="text-2xl font-semibold mt-2 mb-1">Dr. Kai</h2>
-    <p className="text-cyan-300 text-base mb-4">Executive Life Coach</p>
+    <h2 className="text-3xl font-semibold mt-2 mb-1">Dr. Kai</h2>
+    <p className="text-cyan-300 text-base mb-2">Executive Life Coach</p>
     
     <button
       onClick={() => {
