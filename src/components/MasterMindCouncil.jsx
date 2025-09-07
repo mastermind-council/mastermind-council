@@ -612,18 +612,27 @@ const MasterMindCouncil = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {Object.entries(advisors).filter(([key]) => key !== 'dr-kai').map(([key, advisor]) => (
-            <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 opacity-50">
-              <div className="text-center">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${advisor.gradient} flex items-center justify-center text-2xl mx-auto mb-3`}>
-                  {advisor.emoji}
-                </div>
-                <h3 className="font-semibold mb-1">{advisor.name}</h3>
-                <p className="text-sm text-gray-400 mb-3">{advisor.title}</p>
-                <div className="text-xs text-purple-400">Coming Soon</div>
-              </div>
-            </div>
-          ))}
-        </div>
+
+      <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 opacity-50">
+  <div className="text-center">
+    {key === 'maya' ? (
+      <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden">
+        <img 
+          src="/images/maya.png" 
+          alt="Maya"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    ) : (
+      <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${advisor.gradient} flex items-center justify-center text-2xl mx-auto mb-3`}>
+        {advisor.emoji}
+      </div>
+    )}
+    <h3 className="font-semibold mb-1">{advisor.name}</h3>
+    <p className="text-sm text-gray-400 mb-3">{advisor.title}</p>
+    <div className="text-xs text-purple-400">Coming Soon</div>
+  </div>
+</div>
 
         <button
           onClick={() => setCurrentScreen('features-welcome')}
