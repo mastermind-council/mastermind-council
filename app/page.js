@@ -1,5 +1,5 @@
-import MasterMindCouncil from '../src/components/MasterMindCouncil';
+import MasterMindCouncil from "../components/MasterMindCouncil";
 
-export default function HomePage() {
+export default function Page() {
   return <MasterMindCouncil />;
 }
