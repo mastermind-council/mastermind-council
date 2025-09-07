@@ -494,31 +494,14 @@ const MasterMindCouncil = () => {
     }}>
       <CosmicParticles count={120} />
       
-      {/* User menu in top right */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center gap-3">
-          <span className="text-gray-300 text-sm">Welcome, {user?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1 text-sm text-gray-400 hover:text-white border border-gray-600 rounded-lg hover:border-gray-500 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-      
       <div className="w-full max-w-4xl relative z-10 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-400/15 border border-green-400/30 rounded-full text-green-400 text-sm mb-8">
-          <span>✨</span>
-          <span>Welcome to the future of AI interaction</span>
-        </div>
-
+     
         <h1 className="text-4xl md:text-6xl font-semibold mb-6 bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent leading-tight">
-          Your Personal Dream Team<br />Awaits
+  Welcome, {user?.name}!<br />Your Personal Dream Team Awaits
         </h1>
 
         <p className="text-xl text-gray-300 mb-6 max-w-2xl mx-auto">
-          Six world-class AI advisors, each with unique expertise and personality
+          Six world-class DI advisors, each with unique expertise and personality
         </p>
 
         <p className="text-gray-400 mb-12 max-w-lg mx-auto">
