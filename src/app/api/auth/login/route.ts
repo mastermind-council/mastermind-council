@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Login attempt for email:", email);
+    console.warn("WARNING: Login attempt for:", email);
 
     // Find user by email
     const users = await sql`
