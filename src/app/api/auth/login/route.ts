@@ -3,7 +3,7 @@ import { sql } from '../../../../../lib/db';
 import { verifyPassword, generateToken } from '../../../../../lib/auth';
 
 export async function POST(request: NextRequest) {
-  console.log("🚀 LOGIN ROUTE CALLED - Version with detailed logging");
+  console.log("LOGIN ROUTE CALLED - Version with detailed logging");
   try {
     const { email, password } = await request.json();
 
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔍 Login attempt for email:', email);
+    console.log("Login attempt for email:", email);
 
     // Find user by email
     const users = await sql`
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       WHERE email = ${email}
     `;
 
-    console.log('📊 Database query result:', {
+    console.log('Database query result:', {
       userCount: users.length,
       foundUser: users.length > 0 ? {
         id: users[0]?.id,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (users.length === 0) {
-      console.log('❌ No user found with email:', email);
+      console.log('No user found with email:', email);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = users[0];
-    console.log('👤 User found in database:', {
+    console.log('User found in database:', {
       id: user.id,
       name: user.name,
       email: user.email,
