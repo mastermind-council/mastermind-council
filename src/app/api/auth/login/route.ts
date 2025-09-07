@@ -3,6 +3,9 @@ import { sql } from '../../../../../lib/db';
 import { verifyPassword, generateToken } from '../../../../../lib/auth';
 
 export async function POST(request: NextRequest) {
+  console.log("🚀 LOGIN ROUTE CALLED - Version with detailed logging");
+
+export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
