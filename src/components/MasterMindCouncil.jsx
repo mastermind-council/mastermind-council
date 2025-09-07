@@ -612,7 +612,7 @@ const MasterMindCouncil = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {Object.entries(advisors).filter(([key]) => key !== 'dr-kai').map(([key, advisor]) => (
-            <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 opacity-50">
+            <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <div className="text-center">
                 {advisor.name === 'Maya' ? (
   <div className="w-32 h-32 rounded-full mx-auto mb-3 overflow-hidden">
