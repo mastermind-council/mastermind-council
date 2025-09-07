@@ -565,31 +565,45 @@ const MasterMindCouncil = () => {
           <p className="text-xl text-gray-300">Your Personal Dream Team</p>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-12">
-          <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-2xl p-1">
-            <div className="bg-black/80 backdrop-blur-lg rounded-2xl p-8 text-center">
-              <BreathingAvatar
-                emoji="🧬"
-                gradient="from-cyan-400 via-blue-500 to-purple-600"
-                size="xl"
-                active={true}
-              />
-              <h2 className="text-3xl font-semibold mt-4 mb-2">Dr. Kai</h2>
-              <p className="text-cyan-300 text-lg mb-4">Executive Life Coach</p>
-              <p className="text-gray-300 text-sm mb-6">Ready to connect with Dr. Kai</p>
-              
-              <button
-                onClick={() => {
-                  setSelectedAdvisor('dr-kai');
-                  setCurrentScreen('mode-selection');
-                }}
-                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
-              >
-                Start Session with Dr. Kai
-              </button>
-            </div>
-          </div>
+        <div className="max-w-4xl mx-auto mb-12">
+  <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-2xl p-1">
+    <div className="bg-black/80 backdrop-blur-lg rounded-2xl overflow-hidden">
+      <div className="flex flex-col md:flex-row">
+        {/* Photo Section - 40% */}
+        <div className="md:w-2/5 relative">
+          <img 
+            src="/images/dr-kai.png" 
+            alt="Dr. Kai"
+            className="w-full h-64 md:h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50"></div>
         </div>
+        
+        {/* Content Section - 60% */}
+        <div className="md:w-3/5 p-8 text-center md:text-left">
+          <BreathingAvatar
+            emoji="🧬"
+            gradient="from-cyan-400 via-blue-500 to-purple-600"
+            size="md"
+            active={true}
+          />
+          <h2 className="text-3xl font-semibold mt-4 mb-2">Dr. Kai</h2>
+          <p className="text-cyan-300 text-lg mb-6">Executive Life Coach</p>
+          
+          <button
+            onClick={() => {
+              setSelectedAdvisor('dr-kai');
+              setCurrentScreen('mode-selection');
+            }}
+            className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
+          >
+            Start Session with Dr. Kai
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         <div className="text-center mb-8">
           <h3 className="text-2xl font-light text-gray-300 mb-2">More Advisors Coming Soon</h3>
