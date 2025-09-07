@@ -118,6 +118,11 @@ const MasterMindCouncil = () => {
   const [communicationType, setCommunicationType] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Authentication state
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
   // Chat state
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -134,6 +139,23 @@ const MasterMindCouncil = () => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const chatInputRef = useRef(null);
+
+  // Check for existing auth token on mount
+  useEffect(() => {
+    const token = localStorage.getItem('mmc_token');
+    const userData = localStorage.getItem('mmc_user');
+    
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData));
+        setCurrentScreen('features-welcome');
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('mmc_token');
+        localStorage.removeItem('mmc_user');
+      }
+    }
+  }, []);
 
   // Reset input when changing screens
   useEffect(() => {
@@ -161,14 +183,62 @@ const MasterMindCouncil = () => {
     }, 0);
   };
 
-  // Handle login form submission
-  const handleLogin = () => {
+  // Handle login form submission with real API
+  const handleLogin = async () => {
     const email = emailRef.current?.value?.trim();
     const password = passwordRef.current?.value?.trim();
     
-    if (email && password) {
-      setCurrentScreen('features-welcome');
+    if (!email || !password) {
+      setAuthError('Please enter both email and password');
+      return;
     }
+
+    setIsLoading(true);
+    setAuthError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      // Store token and user data
+      localStorage.setItem('mmc_token', data.token);
+      localStorage.setItem('mmc_user', JSON.stringify(data.user));
+      
+      // Update state
+      setUser(data.user);
+      setCurrentScreen('features-welcome');
+      
+      // Clear form
+      if (emailRef.current) emailRef.current.value = '';
+      if (passwordRef.current) passwordRef.current.value = '';
+
+    } catch (error) {
+      console.error('Login error:', error);
+      setAuthError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('mmc_token');
+    localStorage.removeItem('mmc_user');
+    setUser(null);
+    setCurrentScreen('login');
+    setMessages([]);
+    setConversationLoaded(false);
   };
 
   // Handle Enter key on login form
@@ -204,11 +274,13 @@ const MasterMindCouncil = () => {
     setIsTyping(true);
 
     try {
-      // Call our streaming API endpoint
+      // Call our streaming API endpoint with auth token
+      const token = localStorage.getItem('mmc_token');
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           message: messageText,
@@ -342,7 +414,7 @@ const MasterMindCouncil = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Login Screen
+  // Login Screen with Real Authentication
   const LoginScreen = () => (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       <CosmicParticles count={160} />
@@ -358,6 +430,12 @@ const MasterMindCouncil = () => {
         <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
           <h2 className="text-2xl font-semibold mb-6 text-center">Welcome Back</h2>
           
+          {authError && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+              {authError}
+            </div>
+          )}
+          
           <div className="space-y-4">
             <div>
               <input
@@ -367,6 +445,7 @@ const MasterMindCouncil = () => {
                 onKeyPress={(e) => handleLoginKeyPress(e, 'email')}
                 className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
                 autoComplete="email"
+                disabled={isLoading}
               />
             </div>
             
@@ -378,11 +457,13 @@ const MasterMindCouncil = () => {
                 onKeyPress={(e) => handleLoginKeyPress(e, 'password')}
                 className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all pr-16"
                 autoComplete="current-password"
+                disabled={isLoading}
               />
               <button
                 onClick={handlePasswordToggle}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors text-sm"
                 type="button"
+                disabled={isLoading}
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
@@ -390,9 +471,10 @@ const MasterMindCouncil = () => {
 
             <button
               onClick={handleLogin}
-              className="w-full py-3 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg"
+              disabled={isLoading}
+              className="w-full py-3 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </div>
 
@@ -411,6 +493,19 @@ const MasterMindCouncil = () => {
       background: 'linear-gradient(90deg, #000000 0%, #000000 33%, #1e3a8a 66%, #581c87 100%)'
     }}>
       <CosmicParticles count={120} />
+      
+      {/* User menu in top right */}
+      <div className="absolute top-6 right-6 z-20">
+        <div className="flex items-center gap-3">
+          <span className="text-gray-300 text-sm">Welcome, {user?.name}</span>
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1 text-sm text-gray-400 hover:text-white border border-gray-600 rounded-lg hover:border-gray-500 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
       
       <div className="w-full max-w-4xl relative z-10 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-400/15 border border-green-400/30 rounded-full text-green-400 text-sm mb-8">
@@ -794,7 +889,7 @@ const MasterMindCouncil = () => {
               </div>
             </div>
 
-            <div>
+            <div className="mb-8">
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">SETTINGS</div>
               <div className="space-y-2">
                 <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
@@ -808,6 +903,13 @@ const MasterMindCouncil = () => {
                 <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
                   <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">❓</div>
                   <span>Help & Support</span>
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-red-400 hover:bg-red-500/5 transition-all text-sm"
+                >
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">🚪</div>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
