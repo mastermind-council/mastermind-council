@@ -615,7 +615,7 @@ const MasterMindCouncil = () => {
             <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 opacity-50">
               <div className="text-center">
                 {advisor.name === 'Maya' ? (
-  <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden">
+  <div className="w-32 h-32 rounded-full mx-auto mb-3 overflow-hidden">
     <img src="/images/maya.png" alt="Maya" className="w-full h-full object-cover" />
   </div>
 ) : (
