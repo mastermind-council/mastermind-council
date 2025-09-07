@@ -574,7 +574,7 @@ const MasterMindCouncil = () => {
           <img 
             src="/images/dr-kai.png" 
             alt="Dr. Kai"
-            className="w-full h-80 lg:h-96 object-cover object-top"
+            className="w-full h-80 lg:h-screen lg:max-h-96 object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
         </div>
