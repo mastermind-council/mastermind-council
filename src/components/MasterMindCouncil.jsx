@@ -623,7 +623,7 @@ const MasterMindCouncil = () => {
                 <div className="text-xs text-purple-400">Coming Soon</div>
               </div>
             </div>
-          ))}
+          )))}
         </div>
 
         <button
