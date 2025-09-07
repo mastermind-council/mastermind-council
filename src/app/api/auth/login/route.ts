@@ -52,10 +52,10 @@ export async function POST(request: NextRequest) {
 
     // Verify password
     const isValidPassword = await verifyPassword(password, user.password_hash);
-    console.log('🔐 Password verification result:', isValidPassword);
+    console.log('Password verification result:', isValidPassword);
 
     if (!isValidPassword) {
-      console.log('❌ Invalid password for user:', user.email);
+      console.log('Invalid password for user:', user.email);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -68,13 +68,13 @@ export async function POST(request: NextRequest) {
       SET last_login_at = NOW() 
       WHERE id = ${user.id}
     `;
-    console.log('⏰ Updated last_login_at for user ID:', user.id);
+    console.log('Updated last_login_at for user ID:', user.id);
 
     // Generate token
     const token = generateToken(user.id);
-    console.log('🎟️ JWT token generated for user ID:', user.id);
+    console.log('JWT token generated for user ID:', user.id);
 
-    console.log('✅ Login successful for:', {
+    console.log('Login successful for:', {
       userId: user.id,
       userName: user.name,
       userEmail: user.email
@@ -87,11 +87,19 @@ export async function POST(request: NextRequest) {
         email: user.email,
         created_at: user.created_at
       },
-      token
+      token,
+      debug: {
+        emailReceived: email,
+        userFound: users.length > 0,
+        passwordValid: isValidPassword,
+        userCount: users.length,
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      }
     });
 
   } catch (error) {
-    console.error('💥 Login error:', error);
+    console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
