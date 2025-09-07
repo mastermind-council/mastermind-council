@@ -568,7 +568,7 @@ const MasterMindCouncil = () => {
         <div className="max-w-4xl mx-auto mb-12">
   <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-2xl p-1">
     <div className="bg-black/80 backdrop-blur-lg rounded-2xl overflow-hidden">
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-row">
         {/* Photo Section - 40% */}
         <div className="md:w-2/5 relative">
           <img 
