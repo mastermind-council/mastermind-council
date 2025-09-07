@@ -1,8 +1,6 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
-import { RealtimeAgent, RealtimeSession } from '@openai/agents/realtime';
-import voiceAgent from '../services/VoiceAgentManager.js';
 
 // Cosmic particle system component
 const CosmicParticles = ({ count = 600 }) => {
@@ -119,7 +117,6 @@ const MasterMindCouncil = () => {
   const [selectedMode, setSelectedMode] = useState('balanced');
   const [communicationType, setCommunicationType] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('openai');
 
   // Chat state
   const [messages, setMessages] = useState([]);
@@ -132,58 +129,11 @@ const MasterMindCouncil = () => {
 
   // Form state
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  // Voice agent state management
-  const [voiceAgentStatus, setVoiceAgentStatus] = useState('disconnected');
-  const [voiceState, setVoiceState] = useState('connecting');
 
   const messagesEndRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
-  const nameRef = useRef(null);
-  const confirmPasswordRef = useRef(null);
   const chatInputRef = useRef(null);
-
-// NEW: Voice agent event handler
-useEffect(() => {
-  const handleVoiceEvent = (event, data) => {
-    console.log('Voice event received:', event, data);
-    
-    switch (event) {
-      case 'connected':
-        setVoiceAgentStatus('connected');
-        break;
-      case 'disconnected':
-        setVoiceAgentStatus('disconnected');
-        break;
-      case 'state_change':
-        setVoiceState(data);
-        break;
-      case 'history_updated':
-        // When conversation ends, switch to text interface with transcript
-        const formattedMessages = data.map(item => ({
-          role: item.role,
-          content: item.type === 'message' ? item.content[0]?.text || item.content[0]?.transcript || '' : '',
-          timestamp: new Date().toLocaleTimeString()
-        }));
-        setMessages(formattedMessages);
-        setConversationLoaded(true);
-        break;
-      case 'error':
-        console.error('Voice agent error:', data);
-        setVoiceState('error');
-        break;
-    }
-  };
-
-  voiceAgent.addListener(handleVoiceEvent);
-  
-  return () => {
-    voiceAgent.removeListener(handleVoiceEvent);
-  };
-}, []);
-
 
   // Reset input when changing screens
   useEffect(() => {
@@ -221,94 +171,118 @@ useEffect(() => {
     }
   };
 
-  // Handle registration form submission
-  const handleRegister = async () => {
-    const name = nameRef.current?.value?.trim();
-    const email = emailRef.current?.value?.trim();
-    const password = passwordRef.current?.value?.trim();
-    const confirmPassword = confirmPasswordRef.current?.value?.trim();
-    
-    // Basic validation
-    if (!name || !email || !password) {
-      alert('Please fill in all fields');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-    
-    if (password.length < 8) {
-      alert('Password must be at least 8 characters');
-      return;
-    }
-    
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-    
-    console.log('Registration:', { name, email, password });
-  console.log('About to make API call...');
-  
-  try {
-    console.log('Making fetch request...');
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
-    
-    console.log('Fetch response received:', response.status);
-    const data = await response.json();
-    console.log('Response data:', data);
-
-    if (response.ok) {
-      console.log('Registration successful:', data);
-      setCurrentScreen('welcome');
-    } else {
-      alert(data.error || 'Registration failed');
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    alert('Network error. Please try again.');
-  }
-  };
-
   // Handle Enter key on login form
   const handleLoginKeyPress = (e, field) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (field === 'name' && isRegistering) {
-        emailRef.current?.focus();
-      } else if (field === 'email') {
+      if (field === 'email') {
         passwordRef.current?.focus();
-      } else if (field === 'password' && isRegistering) {
-        confirmPasswordRef.current?.focus();
-      } else if (field === 'confirmPassword') {
-        handleRegister();
-      } else if (field === 'password' && !isRegistering) {
+      } else if (field === 'password') {
         handleLogin();
       }
     }
   };
 
-  // Handle sending messages
-  
+  // Handle sending messages with OpenAI API integration
   const handleSendMessage = async () => {
-  if (!chatInputRef.current?.value?.trim()) return;
+    const inputElement = chatInputRef.current;
+    if (!inputElement) return;
+    
+    const messageText = inputElement.value.trim();
+    if (!messageText) return;
+    
+    const userMessage = {
+      id: Date.now(),
+      text: messageText,
+      sender: 'user',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
 
-  const userMessage = chatInputRef.current.value.trim();
-  const newMessages = [...messages, { role: 'user', content: userMessage }];
-  setMessages(newMessages);
-  chatInputRef.current.value = '';
-};
+    setMessages(prev => [...prev, userMessage]);
+    inputElement.value = '';
+    inputElement.focus();
+    setIsTyping(true);
 
+    try {
+      // Call our streaming API endpoint
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          history: messages.slice(-10), // Last 10 messages for context
+          mode: selectedMode
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      // Handle streaming response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
+      // Create assistant message that we'll build up
+      const assistantMessage = {
+        id: Date.now() + 1,
+        text: '',
+        sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+
+      // Read the streaming response
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              break;
+            }
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || '';
+              
+              if (content) {
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, text: msg.text + content }
+                    : msg
+                ));
+              }
+            } catch (e) {
+              // Skip malformed JSON
+            }
+          }
+        }
+      }
+    } catch (error) {
+      setIsTyping(false);
+      console.error('Error:', error);
+      
+      // Fallback message on error
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: "I apologize, but I'm having trouble connecting right now. Please try again.",
+        sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
 
   // Advisor configuration
   const advisors = {
@@ -382,24 +356,9 @@ useEffect(() => {
         </div>
 
         <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
-          <h2 className="text-2xl font-semibold mb-6 text-center">
-            {isRegistering ? 'Create Your Account' : 'Welcome Back'}
-          </h2>
+          <h2 className="text-2xl font-semibold mb-6 text-center">Welcome Back</h2>
           
           <div className="space-y-4">
-            {isRegistering && (
-              <div>
-                <input
-                  ref={nameRef}
-                  type="text"
-                  placeholder="Full Name"
-                  onKeyPress={(e) => handleLoginKeyPress(e, 'name')}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
-                  autoComplete="name"
-                />
-              </div>
-            )}
-            
             <div>
               <input
                 ref={emailRef}
@@ -418,7 +377,7 @@ useEffect(() => {
                 placeholder="Password"
                 onKeyPress={(e) => handleLoginKeyPress(e, 'password')}
                 className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all pr-16"
-                autoComplete={isRegistering ? 'new-password' : 'current-password'}
+                autoComplete="current-password"
               />
               <button
                 onClick={handlePasswordToggle}
@@ -429,55 +388,18 @@ useEffect(() => {
               </button>
             </div>
 
-            {isRegistering && (
-              <div>
-                <input
-                  ref={confirmPasswordRef}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Confirm Password"
-                  onKeyPress={(e) => handleLoginKeyPress(e, 'confirmPassword')}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
-                  autoComplete="new-password"
-                />
-              </div>
-            )}
-
             <button
-              onClick={isRegistering ? handleRegister : handleLogin}
+              onClick={handleLogin}
               className="w-full py-3 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg"
             >
-              {isRegistering ? 'Create Account' : 'Sign In'}
+              Sign In
             </button>
           </div>
 
-          <div className="mt-4 text-center">
-            {!isRegistering && (
-              <button className="text-purple-400 hover:text-purple-300 text-sm transition-colors mb-4 w-full">
-                Forgot password?
-              </button>
-            )}
-            
-            {!isRegistering ? (
-              <div className="text-sm">
-                <span className="text-white">Don't have an account? </span>
-                <button 
-                  onClick={() => setIsRegistering(true)}
-                  className="text-green-500 hover:text-green-400 transition-colors"
-                >
-                  Sign up
-                </button>
-              </div>
-            ) : (
-              <div className="text-sm">
-                <span className="text-white">Already have an account? </span>
-                <button 
-                  onClick={() => setIsRegistering(false)}
-                  className="text-purple-400 hover:text-purple-300 transition-colors"
-                >
-                  Sign in
-                </button>
-              </div>
-            )}
+          <div className="mt-6 text-center">
+            <button className="text-purple-400 hover:text-purple-300 text-sm transition-colors">
+              Forgot password?
+            </button>
           </div>
         </div>
       </div>
@@ -757,13 +679,10 @@ useEffect(() => {
             
             <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
               <button
-               onClick={async () => {
-                 setCommunicationType('talk');
-                 setSelectedAdvisor(selectedAdvisor || 'dr-kai');
-                 setCurrentScreen('voice-interface');
-    
-                 // Initialize voice agent service
-                 await voiceAgent.initialize(selectedMode, modes);
+                onClick={() => {
+                  setCommunicationType('talk');
+                  setSelectedAdvisor(selectedAdvisor || 'dr-kai');
+                  setCurrentScreen('voice-interface');
                 }}
                 className="p-8 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
               >
@@ -792,506 +711,500 @@ useEffect(() => {
       </div>
     );
   };
-  const renderScreen = () => {
-    const TextInterfaceComponent = () => {
-      const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
 
-      return (
-        <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
-          {/* Sidebar Overlay */}
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
+  const TextInterfaceComponent = () => {
+    const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
 
-          {/* Sidebar */}
-          <div className={`fixed left-0 top-0 h-full w-80 bg-black/90 backdrop-blur-xl border-r border-white/10 z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <button 
-                    onClick={() => setCurrentScreen('login')}
-                    className="text-lg font-normal mb-1 bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
-                  >
-                    THE MASTER MIND COUNCIL™
-                  </button>
-                  <div className="text-sm text-gray-400 font-light">Your Personal Dream Team</div>
-                </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+    return (
+      <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
+        {/* Sidebar Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
-              <div className="mb-8">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">NAVIGATION</div>
-                <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">🔍</div>
-                  <span className="text-sm">Search</span>
-                </button>
-              </div>
-
-              <div className="mb-8">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">YOUR COUNCIL</div>
-                <div className="space-y-2">
-                  {Object.entries(advisors).map(([key, adv]) => (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        if (adv.active) {
-                          setSelectedAdvisor(key);
-                          setCurrentScreen('dr-kai-archive');
-                          setSidebarOpen(false);
-                        }
-                      }}
-                      className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all text-sm relative ${
-                        selectedAdvisor === key
-                          ? 'bg-purple-500/30 text-white'
-                          : 'text-gray-300 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                        key === 'dr-kai'
-                          ? 'bg-cyan-400'
-                          : key === 'sensei'
-                          ? 'bg-purple-500'
-                          : `bg-gradient-to-r ${adv.gradient}`
-                      }`}>
-                        {adv.emoji}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">{adv.name}</div>
-                        {!adv.active && <div className="text-xs text-gray-500">Coming Soon</div>}
-                      </div>
-                      {selectedAdvisor === key && (
-                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-purple-500"></div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+        {/* Sidebar */}
+        <div className={`fixed left-0 top-0 h-full w-80 bg-black/90 backdrop-blur-xl border-r border-white/10 z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">SETTINGS</div>
-                <div className="space-y-2">
-                  <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
-                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">⚙️</div>
-                    <span>Preferences</span>
-                  </button>
-                  <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
-                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">📊</div>
-                    <span>Analytics</span>
-                  </button>
-                  <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
-                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">❓</div>
-                    <span>Help & Support</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 text-gray-400 hover:text-white transition-colors lg:hidden flex flex-col gap-1 w-8 h-7 justify-center"
-              >
-                <div className="w-6 h-1 bg-current rounded-full"></div>
-                <div className="w-4 h-1 bg-current rounded-full"></div>
-              </button>
-            </div>
-
-            <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
-              <div className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
-                THE MASTER MIND COUNCIL™
-              </div>
-              <div className="text-sm font-medium text-white/80">
-                {advisor.name} - {advisor.title}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
-                modes[selectedMode].emoji === '⚡' ? 'from-yellow-400 to-orange-400' :
-                modes[selectedMode].emoji === '⚖️' ? 'from-green-400 to-emerald-400' :
-                modes[selectedMode].emoji === '🌱' ? 'from-purple-500 to-purple-400' :
-                'from-blue-400 to-cyan-400'
-              }`}></div>
-              <span>{modes[selectedMode].name} Mode</span>
-            </div>
-          </div>
-
-          {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto p-4 relative z-10">
-            {messages.length === 0 && !conversationLoaded && (
-              <div className="text-center py-20">
-                <div className="relative inline-block mb-6">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-4xl relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" style={{ animation: 'spin 8s linear infinite' }}></div>
-                    <div className="relative z-10 w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center text-3xl">
-                      🧬
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-lg font-medium mt-4 mb-2">Ready to connect with {advisor.name}</h3>
-                <p className="text-gray-400 text-sm">Start the conversation by typing a message below</p>
-              </div>
-            )}
-
-            {messages.map((message, index) => (
-              <div key={index} className={`flex mb-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                 message.role === 'user'
-                    ? 'bg-purple-600 text-white rounded-br-md'
-                    : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-             </div>
-            </div>
-            ))}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-4 bg-black/30 border-t border-white/20">
-            <div className="max-w-4xl mx-auto flex items-end gap-3">
-              {/* Upload Button */}
-              <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              <textarea
-                ref={chatInputRef}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Type your message for Dr. Kai..."
-                className="flex-1 px-4 py-3 bg-white/10 text-white placeholder-gray-400 rounded-full border border-white/30 focus:outline-none focus:border-purple-400 resize-none min-h-[48px] max-h-32"
-                autoComplete="off"
-                spellCheck="false"
-                rows={1}
-                style={{
-                  minHeight: '48px',
-                  maxHeight: '128px',
-                  overflowY: 'auto'
-                }}
-                onInput={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
-                }}
-              />
-
-              {/* Voice/Waveform Button */}
-              <button 
-                onClick={() => setCurrentScreen('voice-interface')}
-                className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="10" width="2" height="4" rx="1"/>
-                  <rect x="7" y="6" width="2" height="12" rx="1"/>
-                  <rect x="11" y="8" width="2" height="8" rx="1"/>
-                  <rect x="15" y="4" width="2" height="16" rx="1"/>
-                  <rect x="19" y="7" width="2" height="10" rx="1"/>
-                </svg>
-              </button>
-
-              {/* Microphone Button */}
-              <button 
-                onClick={() => setCurrentScreen('voice-interface')}
-                className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white hover:bg-gray-500 transition-colors flex-shrink-0"
-              >
-                <Mic className="w-5 h-5" />
-              </button>
-              
-              {/* Send Button */}
-              <button
-                onClick={(e) => { 
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700 transition-colors flex-shrink-0"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-
-const VoiceInterfaceComponent = () => {
-  const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
-
-  // Component just listens to the global voice service - no initialization
-  useEffect(() => {
-    console.log('VoiceInterfaceComponent mounted - listening to voice service');
-    
-    return () => {
-      console.log('VoiceInterfaceComponent unmounted');
-    };
-  }, []);
-
-  const getStatusText = () => {
-    switch (voiceState) {
-      case 'connecting':
-        return 'Connecting to Dr. Kai...';
-      case 'listening':
-        return 'Listening...';
-      case 'speaking':
-        return 'You are speaking...';
-      case 'processing':
-        return 'Dr. Kai is thinking...';
-      case 'responding':
-        return 'Dr. Kai is responding...';
-      case 'error':
-        return 'Connection error - Please try again';
-      case 'disconnected':
-        return 'Disconnected';
-      default:
-        return 'Connecting...';
-    }
-  };
-
-  const getAdvisorStatus = () => {
-    switch (voiceState) {
-      case 'listening':
-      case 'speaking':
-        return 'Listening';
-      case 'processing':
-      case 'responding':
-        return 'Sharing';
-      default:
-        return 'Connecting';
-    }
-  };
-
-  const handleTransitionToText = () => {
-    // Transition to text interface (voice service continues running)
-    setCurrentScreen('text-interface');
-  };
-
-
-  // Keep your existing JSX structure
-  return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
-      {/* Keep all your existing JSX exactly as it is */}
-      <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
-        <div className="w-10"></div>
-        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-          <button
-            onClick={() => setCurrentScreen('login')}
-            className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
-          >
-            THE MASTER MIND COUNCIL™
-          </button>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
-            modes[selectedMode].emoji === '⚡' ? 'from-yellow-400 to-orange-400' :
-            modes[selectedMode].emoji === '⚖️' ? 'from-green-400 to-emerald-400' :
-            modes[selectedMode].emoji === '🌱' ? 'from-purple-500 to-purple-400' :
-            'from-blue-400 to-cyan-400'
-          }`}></div>
-          <span>{modes[selectedMode].name} Mode</span>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-        <div className="text-center mb-16">
-          <div className="relative inline-block mb-4">
-            <div className={`w-20 h-20 rounded-full bg-gradient-to-r ${advisor.gradient} flex items-center justify-center text-3xl relative`}>
-              <div className="relative z-10 w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-2xl">
-                {advisor.emoji}
-              </div>
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold mb-1">{advisor.name}</h3>
-          <div className="flex items-center justify-center gap-2 text-sm">
-            <div className={`w-2 h-2 rounded-full ${
-              ['listening', 'speaking'].includes(voiceState) ? 'bg-green-400' : 'bg-purple-400'
-            }`}></div>
-            <span className="text-gray-400">{getAdvisorStatus()}</span>
-          </div>
-        </div>
-
-        <div className="mb-16">
-          <div className={`w-32 h-32 rounded-full flex items-center justify-center ${
-            ['listening', 'speaking'].includes(voiceState) ? 'bg-green-500' : 'bg-purple-500'
-          }`}>
-            <Mic className="w-8 h-8 text-white" />
-          </div>
-        </div>
-
-        <div className="text-center">
-          <p className="text-lg text-white mb-2">{getStatusText()}</p>
-        </div>
-      </div>
-
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
-        <button
-          onClick={() => setCurrentScreen('text-interface')}
-          className="w-12 h-12 rounded-full bg-gray-700/70 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600/70 transition-all"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-};    
-          
-
-    const DrKaiArchiveComponent = () => {
-      const handleLoadLifePrint3 = () => {
-        const lifePrint3Messages = [
-          {
-            id: 1,
-            text: "Good Morning, Doc! I am feeling a little off and sluggish since I didn't get my morning workout in but glucose is steady at 92mg/dL. Big stress and challenge today. Any suggestions?",
-            sender: 'user',
-            timestamp: '8:15 AM'
-          },
-          {
-            id: 2,
-            text: "Good Morning! You are trending exactly as we planned so I'm feeling good about the metabolic system regulation and balance. This will serve you well as you face today's challenge head on. Remember...\"The ocean doesn't stop being the ocean because a storm passes through.\" Now, let's start with some breathing to calibrate and reset your central nervous system. Then we will develop a plan of attack together to make today a major win for you.",
-            sender: 'assistant',
-            timestamp: '8:16 AM'
-          }
-        ];
-        
-        setSelectedAdvisor('dr-kai');
-        setMessages(lifePrint3Messages);
-        setConversationLoaded(true);
-        setCurrentScreen('text-interface');
-      };
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative">
-          <CosmicParticles count={30} />
-
-          <div className="relative z-10 min-h-screen flex flex-col">
-            <div className="flex items-center justify-between p-6 bg-black/20 backdrop-blur-xl border-b border-white/10">
-              <button
-                onClick={() => setCurrentScreen('text-interface')}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-
-              <div className="text-center">
                 <button 
                   onClick={() => setCurrentScreen('login')}
-                  className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+                  className="text-lg font-normal mb-1 bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
                 >
                   THE MASTER MIND COUNCIL™
                 </button>
-                <div className="text-sm font-medium text-white/80 mt-1">
-                  Dr. Kai - Executive Life Coach
-                </div>
+                <div className="text-sm text-gray-400 font-light">Your Personal Dream Team</div>
               </div>
-
-              <div className="w-10"></div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex-1 p-8">
-              <div className="text-center mb-8">
-                <div className="relative inline-block mb-6">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-5xl relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" style={{ animation: 'spin 8s linear infinite' }}></div>
-                    <div className="relative z-10 w-28 h-28 rounded-full bg-gray-900 flex items-center justify-center text-4xl">
-                      🧬
-                    </div>
-                  </div>
-                </div>
-                <h1 className="text-3xl font-semibold mb-2">Dr. Kai</h1>
-                <p className="text-gray-400 text-lg">Executive Life Coach • Elite Performance • Holistic Health & Wellness</p>
-              </div>
+            <div className="mb-8">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">NAVIGATION</div>
+              <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">🔍</div>
+                <span className="text-sm">Search</span>
+              </button>
+            </div>
 
-              <div className="max-w-4xl mx-auto">
-                <h2 className="text-xl font-semibold mb-6">Conversations with Dr. Kai</h2>
-                
-                <div className="space-y-4 mb-8">
-                  <div 
-                    onClick={handleLoadLifePrint3}
-                    className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 hover:bg-white/8 hover:border-white/20 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-xl"
+            <div className="mb-8">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">YOUR COUNCIL</div>
+              <div className="space-y-2">
+                {Object.entries(advisors).map(([key, adv]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      if (adv.active) {
+                        setSelectedAdvisor(key);
+                        setCurrentScreen('dr-kai-archive');
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all text-sm relative ${
+                      selectedAdvisor === key
+                        ? 'bg-purple-500/30 text-white'
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    }`}
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">Dr. Kai LifePrint 3.0</h3>
-                      <p className="text-gray-400 text-sm">Good Morning, Doc! I am feeling a little off...</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                        <span>Today</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>2 messages</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>Text</span>
-                      </div>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      key === 'dr-kai'
+                        ? 'bg-cyan-400'
+                        : key === 'sensei'
+                        ? 'bg-purple-500'
+                        : `bg-gradient-to-r ${adv.gradient}`
+                    }`}>
+                      {adv.emoji}
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 opacity-60">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">Dr. Kai LifePrint 2.0</h3>
-                      <p className="text-gray-400 text-sm">Thank you!...</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                        <span>Yesterday</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>23 messages</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>Voice & Text</span>
-                      </div>
+                    <div className="text-left">
+                      <div className="font-medium">{adv.name}</div>
+                      {!adv.active && <div className="text-xs text-gray-500">Coming Soon</div>}
                     </div>
-                  </div>
+                    {selectedAdvisor === key && (
+                      <div className="absolute right-0 top-0 bottom-0 w-1 bg-purple-500"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 opacity-60">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">Dr. Kai LifePrint 1.0</h3>
-                      <p className="text-gray-400 text-sm">Thank you, Doc! 🙏</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                        <span>3 days ago</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>31 messages</span>
-                        <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                        <span>Voice & Text</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => {
-                    setSelectedAdvisor('dr-kai');
-                    setMessages([]);
-                    setConversationLoaded(false);
-                    setCurrentScreen('text-interface');
-                  }}
-                  className="w-full p-4 bg-purple-600/10 border-2 border-dashed border-purple-500/30 rounded-2xl text-purple-400 hover:bg-purple-600/15 hover:border-purple-500/50 hover:text-purple-300 transition-all duration-300 flex items-center justify-center gap-3 font-medium transform hover:-translate-y-1"
-                >
-                  <span className="text-xl">+</span>
-                  <span>Start New Conversation with Dr. Kai</span>
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">SETTINGS</div>
+              <div className="space-y-2">
+                <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">⚙️</div>
+                  <span>Preferences</span>
+                </button>
+                <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">📊</div>
+                  <span>Analytics</span>
+                </button>
+                <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm">
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">❓</div>
+                  <span>Help & Support</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
-      );
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 text-gray-400 hover:text-white transition-colors lg:hidden flex flex-col gap-1 w-8 h-7 justify-center"
+            >
+              <div className="w-6 h-1 bg-current rounded-full"></div>
+              <div className="w-4 h-1 bg-current rounded-full"></div>
+            </button>
+          </div>
+
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
+            <div className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
+              THE MASTER MIND COUNCIL™
+            </div>
+            <div className="text-sm font-medium text-white/80">
+              {advisor.name} - {advisor.title}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
+              modes[selectedMode].emoji === '⚡' ? 'from-yellow-400 to-orange-400' :
+              modes[selectedMode].emoji === '⚖️' ? 'from-green-400 to-emerald-400' :
+              modes[selectedMode].emoji === '🌱' ? 'from-purple-500 to-purple-400' :
+              'from-blue-400 to-cyan-400'
+            }`}></div>
+            <span>{modes[selectedMode].name} Mode</span>
+          </div>
+        </div>
+
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto p-4 relative z-10">
+          {messages.length === 0 && !conversationLoaded && (
+            <div className="text-center py-20">
+              <div className="relative inline-block mb-6">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-4xl relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" style={{ animation: 'spin 8s linear infinite' }}></div>
+                  <div className="relative z-10 w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center text-3xl">
+                    🧬
+                  </div>
+                </div>
+              </div>
+              <h3 className="text-lg font-medium mt-4 mb-2">Ready to connect with {advisor.name}</h3>
+              <p className="text-gray-400 text-sm">Start the conversation by typing a message below</p>
+            </div>
+          )}
+
+          {messages.map((message) => (
+            <div key={message.id} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                message.sender === 'user'
+                  ? 'bg-purple-600 text-white rounded-br-md'
+                  : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
+              }`}>
+                <p className="text-sm">{message.text}</p>
+                <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex justify-start mb-4">
+              <div className="bg-white/10 backdrop-blur-lg text-white rounded-2xl rounded-bl-md border border-white/10 px-4 py-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 bg-black/30 border-t border-white/20">
+          <div className="max-w-4xl mx-auto flex items-end gap-3">
+            {/* Upload Button */}
+            <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            <textarea
+              ref={chatInputRef}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Type your message for Dr. Kai..."
+              className="flex-1 px-4 py-3 bg-white/10 text-white placeholder-gray-400 rounded-full border border-white/30 focus:outline-none focus:border-purple-400 resize-none min-h-[48px] max-h-32"
+              autoComplete="off"
+              spellCheck="false"
+              rows={1}
+              style={{
+                minHeight: '48px',
+                maxHeight: '128px',
+                overflowY: 'auto'
+              }}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+              }}
+            />
+
+            {/* Voice/Waveform Button */}
+            <button 
+              onClick={() => setCurrentScreen('voice-interface')}
+              className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="10" width="2" height="4" rx="1"/>
+                <rect x="7" y="6" width="2" height="12" rx="1"/>
+                <rect x="11" y="8" width="2" height="8" rx="1"/>
+                <rect x="15" y="4" width="2" height="16" rx="1"/>
+                <rect x="19" y="7" width="2" height="10" rx="1"/>
+              </svg>
+            </button>
+
+            {/* Microphone Button */}
+            <button 
+              onClick={() => setCurrentScreen('voice-interface')}
+              className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white hover:bg-gray-500 transition-colors flex-shrink-0"
+            >
+              <Mic className="w-5 h-5" />
+            </button>
+            
+            {/* Send Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700 transition-colors flex-shrink-0"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const VoiceInterfaceComponent = () => {
+    const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
+    const [voiceState, setVoiceState] = useState('listening');
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setVoiceState(prev => prev === 'listening' ? 'responding' : 'listening');
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }, []);
+
+    const getStatusText = () => {
+      switch (voiceState) {
+        case 'listening':
+          return 'Listening...';
+        case 'responding':
+          return 'Dr. Kai is responding...';
+        default:
+          return 'Listening...';
+      }
     };
 
+    const getAdvisorStatus = () => {
+      switch (voiceState) {
+        case 'listening':
+          return 'Listening';
+        case 'responding':
+          return 'Sharing';
+        default:
+          return 'Listening';
+      }
+    };
+
+    return (
+      <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
+        <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
+          <div className="w-10"></div>
+
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+            <button 
+              onClick={() => setCurrentScreen('login')}
+              className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            >
+              THE MASTER MIND COUNCIL™
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
+              modes[selectedMode].emoji === '⚡' ? 'from-yellow-400 to-orange-400' :
+              modes[selectedMode].emoji === '⚖️' ? 'from-green-400 to-emerald-400' :
+              modes[selectedMode].emoji === '🌱' ? 'from-purple-500 to-purple-400' :
+              'from-blue-400 to-cyan-400'
+            }`}></div>
+            <span>{modes[selectedMode].name} Mode</span>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+          <div className="text-center mb-16">
+            <div className="relative inline-block mb-4">
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-r ${advisor.gradient} flex items-center justify-center text-3xl relative`}>
+                <div className="relative z-10 w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-2xl">
+                  {advisor.emoji}
+                </div>
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold mb-1">{advisor.name}</h3>
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <div className={`w-2 h-2 rounded-full ${
+                voiceState === 'listening' ? 'bg-green-400' : 'bg-purple-400'
+              }`}></div>
+              <span className="text-gray-400">{getAdvisorStatus()}</span>
+            </div>
+          </div>
+
+          <div className="mb-16">
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center ${
+              voiceState === 'listening' ? 'bg-green-500' : 'bg-purple-500'
+            }`}>
+              <Mic className="w-8 h-8 text-white" />
+            </div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-lg text-white mb-2">{getStatusText()}</p>
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+          <button
+            onClick={() => setCurrentScreen('text-interface')}
+            className="w-12 h-12 rounded-full bg-gray-700/70 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600/70 transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const DrKaiArchiveComponent = () => {
+    const handleLoadLifePrint3 = () => {
+      const lifePrint3Messages = [
+        {
+          id: 1,
+          text: "Good Morning, Doc! I am feeling a little off and sluggish since I didn't get my morning workout in but glucose is steady at 92mg/dL. Big stress and challenge today. Any suggestions?",
+          sender: 'user',
+          timestamp: '8:15 AM'
+        },
+        {
+          id: 2,
+          text: "Good Morning! You are trending exactly as we planned so I'm feeling good about the metabolic system regulation and balance. This will serve you well as you face today's challenge head on. Remember...\"The ocean doesn't stop being the ocean because a storm passes through.\" Now, let's start with some breathing to calibrate and reset your central nervous system. Then we will develop a plan of attack together to make today a major win for you.",
+          sender: 'assistant',
+          timestamp: '8:16 AM'
+        }
+      ];
+      
+      setSelectedAdvisor('dr-kai');
+      setMessages(lifePrint3Messages);
+      setConversationLoaded(true);
+      setCurrentScreen('text-interface');
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative">
+        <CosmicParticles count={30} />
+
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <div className="flex items-center justify-between p-6 bg-black/20 backdrop-blur-xl border-b border-white/10">
+            <button
+              onClick={() => setCurrentScreen('text-interface')}
+              className="p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <div className="text-center">
+              <button 
+                onClick={() => setCurrentScreen('login')}
+                className="text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+              >
+                THE MASTER MIND COUNCIL™
+              </button>
+              <div className="text-sm font-medium text-white/80 mt-1">
+                Dr. Kai - Executive Life Coach
+              </div>
+            </div>
+
+            <div className="w-10"></div>
+          </div>
+
+          <div className="flex-1 p-8">
+            <div className="text-center mb-8">
+              <div className="relative inline-block mb-6">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-5xl relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" style={{ animation: 'spin 8s linear infinite' }}></div>
+                  <div className="relative z-10 w-28 h-28 rounded-full bg-gray-900 flex items-center justify-center text-4xl">
+                    🧬
+                  </div>
+                </div>
+              </div>
+              <h1 className="text-3xl font-semibold mb-2">Dr. Kai</h1>
+              <p className="text-gray-400 text-lg">Executive Life Coach • Elite Performance • Holistic Health & Wellness</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-xl font-semibold mb-6">Conversations with Dr. Kai</h2>
+              
+              <div className="space-y-4 mb-8">
+                <div 
+                  onClick={handleLoadLifePrint3}
+                  className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 hover:bg-white/8 hover:border-white/20 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white">Dr. Kai LifePrint 3.0</h3>
+                    <p className="text-gray-400 text-sm">Good Morning, Doc! I am feeling a little off...</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <span>Today</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>2 messages</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>Text</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 opacity-60">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white">Dr. Kai LifePrint 2.0</h3>
+                    <p className="text-gray-400 text-sm">Thank you!...</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <span>Yesterday</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>23 messages</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>Voice & Text</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 opacity-60">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">💬</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white">Dr. Kai LifePrint 1.0</h3>
+                    <p className="text-gray-400 text-sm">Thank you, Doc! 🙏</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <span>3 days ago</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>31 messages</span>
+                      <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                      <span>Voice & Text</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setSelectedAdvisor('dr-kai');
+                  setMessages([]);
+                  setConversationLoaded(false);
+                  setCurrentScreen('text-interface');
+                }}
+                className="w-full p-4 bg-purple-600/10 border-2 border-dashed border-purple-500/30 rounded-2xl text-purple-400 hover:bg-purple-600/15 hover:border-purple-500/50 hover:text-purple-300 transition-all duration-300 flex items-center justify-center gap-3 font-medium transform hover:-translate-y-1"
+              >
+                <span className="text-xl">+</span>
+                <span>Start New Conversation with Dr. Kai</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderScreen = () => {
     switch (currentScreen) {
       case 'login':
         return <LoginScreen />;
