@@ -679,17 +679,13 @@ const MasterMindCouncil = () => {
             <p className="text-gray-300 text-sm">Your Personal Dream Team</p>
           </div>
 
-          <div className="relative flex items-center justify-center">
-  <div className="w-16 h-16 rounded-full overflow-hidden">
-    <img 
-      src="/images/dr-kai.png" 
-      alt="Dr. Kai"
-      className="w-full h-full object-cover" 
-    />
-  </div>
-</div>
-          
-         
+          <div className="text-center mb-8">
+            <BreathingAvatar
+              emoji={advisor.emoji}
+              gradient={advisor.gradient}
+              size="md"
+              active={true}
+            />
             <h3 className="text-lg font-semibold mt-3 mb-1">{advisor.name}</h3>
             <p className="text-gray-400 text-sm">{advisor.title}</p>
             <p className="text-gray-400 text-xs mt-1">Elite Performance • Holistic Health & Wellness</p>
