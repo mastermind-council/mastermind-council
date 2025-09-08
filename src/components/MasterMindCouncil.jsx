@@ -614,8 +614,8 @@ const MasterMindCouncil = () => {
           {Object.entries(advisors).filter(([key]) => key !== 'dr-kai').map(([key, advisor]) => (
             <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <div className="text-center">
-             {['Maya', 'Michael', 'Giselle', 'Jasmine', 'Sensei'].includes(advisor.name) ? (
-  <div className="w-36 h-36 rounded-full mx-auto mb-3 overflow-hidden">
+            {['Maya', 'Michael', 'Giselle', 'Jasmine', 'Sensei'].includes(advisor.name) ? (
+  <div className="w-32 h-40 mx-auto mb-3 overflow-hidden rounded-lg">
     <img 
       src={`/images/${advisor.name.toLowerCase()}.png`} 
       alt={advisor.name}
