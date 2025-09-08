@@ -934,7 +934,7 @@ const MasterMindCouncil = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 text-gray-400 hover:text-white transition-colors lg:hidden flex flex-col gap-1 w-8 h-7 justify-center"
+              className="p-2 text-gray-400 hover:text-white transition-colors flex flex-col gap-1 w-8 h-7 justify-center"
             >
               <div className="w-6 h-1 bg-current rounded-full"></div>
               <div className="w-4 h-1 bg-current rounded-full"></div>
