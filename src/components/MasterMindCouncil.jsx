@@ -943,7 +943,7 @@ const MasterMindCouncil = () => {
           </div>
 
           <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
-            <div className="text-sm md:text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
+            <div className="text-sm md:text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent text-center">
               THE MASTER MIND COUNCIL™
             </div>
             <div className="text-sm font-medium text-white/80">
