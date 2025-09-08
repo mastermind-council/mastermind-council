@@ -845,7 +845,6 @@ const MasterMindCouncil = () => {
                 >
                   THE MASTER MIND COUNCIL™
                 </button>
-                <div className="text-sm text-gray-400 font-light">Your Personal Dream Team</div>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -855,13 +854,6 @@ const MasterMindCouncil = () => {
               </button>
             </div>
 
-            <div className="mb-8">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">NAVIGATION</div>
-              <button className="w-full p-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">🔍</div>
-                <span className="text-sm">Search</span>
-              </button>
-            </div>
 
             <div className="mb-8">
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">YOUR COUNCIL</div>
