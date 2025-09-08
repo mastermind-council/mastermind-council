@@ -804,6 +804,7 @@ const MasterMindCouncil = () => {
                 onClick={() => {
                   setCommunicationType('text');
                   setSelectedAdvisor(selectedAdvisor || 'dr-kai');
+                  setSidebarOpen(false);
                   setCurrentScreen('text-interface');
                 }}
                 className="p-8 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 hover:border-cyan-500/50 hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
