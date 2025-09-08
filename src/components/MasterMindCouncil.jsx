@@ -615,11 +615,11 @@ const MasterMindCouncil = () => {
             <div key={key} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <div className="text-center">
             {['Maya', 'Michael', 'Giselle', 'Jasmine', 'Sensei'].includes(advisor.name) ? (
-  <div className="w-full h-24 mx-auto mb-3 overflow-hidden rounded-lg">
+  <div className="w-full mx-auto mb-3 overflow-hidden rounded-lg">
     <img 
       src={`/images/${advisor.name.toLowerCase()}.png`} 
       alt={advisor.name}
-      className="w-full h-full object-cover" 
+      className="w-full h-auto object-contain" 
     />
   </div>
 ) : (
