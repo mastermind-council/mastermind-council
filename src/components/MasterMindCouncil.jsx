@@ -962,8 +962,12 @@ const MasterMindCouncil = () => {
               <div className="relative inline-block mb-6">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-4xl relative">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" style={{ animation: 'spin 8s linear infinite' }}></div>
-                  <div className="relative z-10 w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center text-3xl">
-                    🧬
+                  <div className="relative z-10 w-20 h-20 rounded-full overflow-hidden">
+                    <img 
+                      src="/images/dr-kai.png" 
+                      alt="Dr. Kai"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </div>
               </div>
