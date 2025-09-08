@@ -759,7 +759,7 @@ const MasterMindCouncil = () => {
 
           <div className="text-center mb-8">
             <div className="relative flex items-center justify-center">
-             <div className="w-16 h-16 rounded-full overflow-hidden">
+             <div className="w-24 h-24 rounded-full overflow-hidden">
               <img 
               src="/images/dr-kai.png" 
               alt="Dr. Kai"
