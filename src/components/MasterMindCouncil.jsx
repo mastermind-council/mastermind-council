@@ -758,12 +758,15 @@ const MasterMindCouncil = () => {
           </div>
 
           <div className="text-center mb-8">
-            <BreathingAvatar
-              emoji={advisor.emoji}
-              gradient={advisor.gradient}
-              size="md"
-              active={true}
+            <div className="relative flex items-center justify-center">
+             <div className="w-16 h-16 rounded-full overflow-hidden">
+              <img 
+              src="/images/dr-kai.png" 
+              alt="Dr. Kai"
+              className="w-full h-full object-cover"
             />
+        </div>
+      </div>
             <h3 className="text-lg font-semibold mt-3 mb-1">{advisor.name}</h3>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
               <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
