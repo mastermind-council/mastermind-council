@@ -117,7 +117,6 @@ const MasterMindCouncil = () => {
   const [selectedMode, setSelectedMode] = useState('balanced');
   const [communicationType, setCommunicationType] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   
   // Authentication state
   const [user, setUser] = useState(null);
