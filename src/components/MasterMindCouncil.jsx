@@ -1023,7 +1023,6 @@ const MasterMindCouncil = () => {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Type your message for Dr. Kai..."
                 className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 resize-none min-h-[48px] max-h-32 focus:outline-none"
                 autoComplete="off"
                 spellCheck="false"
@@ -1040,7 +1039,7 @@ const MasterMindCouncil = () => {
               />
               
               {/* Icons inside the input bubble */}
-              <div className="flex items-center gap-2 pr-3">
+              <div className="flex items-center gap-2 pr-3 mb-1">
                 {/* Voice/Waveform Button */}
                 <button 
                   onClick={() => setCurrentScreen('voice-interface')}
