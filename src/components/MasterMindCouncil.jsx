@@ -141,6 +141,11 @@ const MasterMindCouncil = () => {
   const passwordRef = useRef(null);
   const chatInputRef = useRef(null);
 
+// Auto-scroll to top when screen changes
+useEffect(() => {
+  window.scrollTo(0, 0);
+}, [currentScreen]);
+
   // Check for existing auth token on mount
   useEffect(() => {
     const token = localStorage.getItem('mmc_token');
