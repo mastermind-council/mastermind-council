@@ -1004,7 +1004,7 @@ const MasterMindCouncil = () => {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 px-2 sm:px-4 bg-black/30 border-t border-white/20">
+        <div className="p-4 px-4 sm:px-4 bg-black/30 border-t border-white/20">
           <div className="max-w-4xl mx-auto flex items-center gap-2 sm:gap-3">
             {/* Upload Button */}
             <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0">
