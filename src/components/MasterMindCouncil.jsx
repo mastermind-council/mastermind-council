@@ -1023,7 +1023,7 @@ const MasterMindCouncil = () => {
                     handleSendMessage();
                   }
                 }}
-                className="flex-auto sm:flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 resize-none min-h-[48px] max-h-32 focus:outline-none text-lg"
+                className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 resize-none min-h-[48px] max-h-32 focus:outline-none text-lg"
                 autoComplete="off"
                 spellCheck="false"
                 rows={1}
