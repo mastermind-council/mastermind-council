@@ -1046,7 +1046,7 @@ const MasterMindCouncil = () => {
                   onClick={() => setCurrentScreen('voice-interface')}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <rect x="3" y="10" width="2" height="4" rx="1"/>
                     <rect x="7" y="6" width="2" height="12" rx="1"/>
                     <rect x="11" y="8" width="2" height="8" rx="1"/>
@@ -1058,7 +1058,7 @@ const MasterMindCouncil = () => {
                 {/* Microphone Button */}
                 <button 
                   onClick={() => setCurrentScreen('voice-interface')}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
                 >
                   <Mic className="w-4 h-4" />
                 </button>
