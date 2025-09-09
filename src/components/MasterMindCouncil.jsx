@@ -1005,81 +1005,81 @@ const MasterMindCouncil = () => {
 
         {/* Input Area */}
         <div className="p-4 bg-black/30 border-t border-white/20">
-        <div className="max-w-4xl mx-auto flex items-end gap-3">
-  {/* Upload Button */}
-  <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0">
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  </button>
+          <div className="max-w-4xl mx-auto flex items-end gap-3">
+            {/* Upload Button */}
+            <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors flex-shrink-0">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
 
-  {/* Input container with icons inside */}
-  <div className="flex-1 relative flex items-end bg-white/10 border border-white/30 rounded-full focus-within:border-purple-400 transition-colors">
-    <textarea
-      ref={chatInputRef}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleSendMessage();
-        }
-      }}
-      placeholder="Type your message for Dr. Kai..."
-      className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 resize-none min-h-[48px] max-h-32 focus:outline-none"
-      autoComplete="off"
-      spellCheck="false"
-      rows={1}
-      style={{
-        minHeight: '48px',
-        maxHeight: '128px',
-        overflowY: 'auto'
-      }}
-      onInput={(e) => {
-        e.target.style.height = 'auto';
-        e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
-      }}
-    />
-    
-    {/* Icons inside the input bubble */}
-    <div className="flex items-center gap-2 pr-2">
-      {/* Voice/Waveform Button */}
-      <button 
-        onClick={() => setCurrentScreen('voice-interface')}
-        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="10" width="2" height="4" rx="1"/>
-          <rect x="7" y="6" width="2" height="12" rx="1"/>
-          <rect x="11" y="8" width="2" height="8" rx="1"/>
-          <rect x="15" y="4" width="2" height="16" rx="1"/>
-          <rect x="19" y="7" width="2" height="10" rx="1"/>
-        </svg>
-      </button>
+            {/* Input container with icons inside */}
+            <div className="flex-1 relative flex items-end bg-white/10 border border-white/30 rounded-full focus-within:border-purple-400 transition-colors">
+              <textarea
+                ref={chatInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Type your message for Dr. Kai..."
+                className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 resize-none min-h-[48px] max-h-32 focus:outline-none"
+                autoComplete="off"
+                spellCheck="false"
+                rows={1}
+                style={{
+                  minHeight: '48px',
+                  maxHeight: '128px',
+                  overflowY: 'auto'
+                }}
+                onInput={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                }}
+              />
+              
+              {/* Icons inside the input bubble */}
+              <div className="flex items-center gap-2 pr-2">
+                {/* Voice/Waveform Button */}
+                <button 
+                  onClick={() => setCurrentScreen('voice-interface')}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="10" width="2" height="4" rx="1"/>
+                    <rect x="7" y="6" width="2" height="12" rx="1"/>
+                    <rect x="11" y="8" width="2" height="8" rx="1"/>
+                    <rect x="15" y="4" width="2" height="16" rx="1"/>
+                    <rect x="19" y="7" width="2" height="10" rx="1"/>
+                  </svg>
+                </button>
 
-      {/* Microphone Button */}
-      <button 
-        onClick={() => setCurrentScreen('voice-interface')}
-        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
-      >
-        <Mic className="w-4 h-4" />
-      </button>
-      
-      {/* Send Button */}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          handleSendMessage();
-        }}
-        className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700 transition-colors"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-           </button>
+                {/* Microphone Button */}
+                <button 
+                  onClick={() => setCurrentScreen('voice-interface')}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+                
+                {/* Send Button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700 transition-colors"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    </div>
     );
   };
 
@@ -1182,7 +1182,6 @@ const MasterMindCouncil = () => {
           </button>
         </div>
       </div>
-    </div>
     );
   };
 
