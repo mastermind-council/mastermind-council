@@ -117,7 +117,7 @@ const MasterMindCouncil = () => {
   const [selectedMode, setSelectedMode] = useState('balanced');
   const [communicationType, setCommunicationType] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Authentication state
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -270,8 +270,8 @@ const MasterMindCouncil = () => {
 
     setMessages(prev => [...prev, userMessage]);
     inputElement.value = '';
-    setIsTyping(false);
     inputElement.focus();
+    setIsTyping(true);
 
     try {
       // Call our streaming API endpoint with auth token
@@ -306,6 +306,7 @@ const MasterMindCouncil = () => {
       };
       
       setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
 
       // Read the streaming response
       while (true) {
@@ -1016,9 +1017,6 @@ const MasterMindCouncil = () => {
             <div className="flex-1 relative flex items-end bg-white/10 border border-white/30 rounded-full focus-within:border-purple-400 transition-colors">
               <textarea
                 ref={chatInputRef}
-                onChange={(e) => {
-                  setIsTyping(e.target.value.length > 0);
-                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1042,8 +1040,6 @@ const MasterMindCouncil = () => {
               
               {/* Icons inside the input bubble */}
               <div className="flex items-center gap-2 pr-3 mb-1.5">
-                {!isTyping && (
-                  <>
                 {/* Voice/Waveform Button */}
                 <button 
                   onClick={() => setCurrentScreen('voice-interface')}
@@ -1063,11 +1059,10 @@ const MasterMindCouncil = () => {
                   onClick={() => setCurrentScreen('voice-interface')}
                   className="w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
                 >
-                   <Mic className="w-5 h-5" />
-                  </button>
-                 </>
-                )}
-                {/* Send Button - always visible */}
+                  <Mic className="w-5 h-5" />
+                </button>
+                
+                {/* Send Button */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
