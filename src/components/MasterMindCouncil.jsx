@@ -84,11 +84,6 @@ const CosmicParticles = ({ count = 600 }) => {
   );
 };
 
-// Auto-scroll to top when screen changes
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, [currentScreen]);
-
 
 // Breathing avatar component
 const BreathingAvatar = ({ emoji, gradient, size = 'lg', active = false }) => {
