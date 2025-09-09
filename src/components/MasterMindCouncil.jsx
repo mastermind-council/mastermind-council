@@ -1079,6 +1079,7 @@ const MasterMindCouncil = () => {
         </div>
       </div>
      </div>
+   </div>
     );
   };
 
