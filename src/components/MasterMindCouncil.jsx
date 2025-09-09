@@ -1014,7 +1014,7 @@ const MasterMindCouncil = () => {
             </button>
 
             {/* Input container with icons inside */}
-            <div className="flex-1 relative flex items-end bg-white/10 border border-white/30 rounded-xl focus-within:border-purple-400 transition-colors">
+            <div className="flex-auto relative flex items-end bg-white/10 border border-white/30 rounded-xl focus-within:border-purple-400 transition-colors">
               <textarea
                 ref={chatInputRef}
                 onKeyDown={(e) => {
