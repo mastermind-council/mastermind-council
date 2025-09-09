@@ -1040,7 +1040,7 @@ const MasterMindCouncil = () => {
               />
               
               {/* Icons inside the input bubble */}
-              <div className="flex items-center gap-2 pr-3 mt-0.5">
+              <div className="flex items-center gap-2 pr-3">
                 {/* Voice/Waveform Button */}
                 <button 
                   onClick={() => setCurrentScreen('voice-interface')}
