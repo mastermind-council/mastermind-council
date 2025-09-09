@@ -1065,8 +1065,9 @@ const MasterMindCouncil = () => {
                   onClick={() => setCurrentScreen('voice-interface')}
                   className="w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
                 >
-                  <Mic className="w-5 h-5" />
-                </button>
+                   <Mic className="w-5 h-5" />
+                  </button>
+                 </>
                 )}
                 {/* Send Button - always visible */}
                 <button
