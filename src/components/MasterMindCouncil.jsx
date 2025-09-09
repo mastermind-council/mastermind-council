@@ -272,7 +272,6 @@ const MasterMindCouncil = () => {
     inputElement.value = '';
     setIsTyping(false);
     inputElement.focus();
-    setIsTyping(true);
 
     try {
       // Call our streaming API endpoint with auth token
@@ -307,7 +306,6 @@ const MasterMindCouncil = () => {
       };
       
       setMessages(prev => [...prev, assistantMessage]);
-      setIsTyping(false);
 
       // Read the streaming response
       while (true) {
