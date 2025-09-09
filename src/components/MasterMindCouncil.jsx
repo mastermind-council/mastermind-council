@@ -1180,6 +1180,7 @@ const MasterMindCouncil = () => {
           </button>
         </div>
       </div>
+    </div>
     );
   };
 
