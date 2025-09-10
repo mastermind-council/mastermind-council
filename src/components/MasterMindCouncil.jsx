@@ -147,6 +147,15 @@ useEffect(() => {
   window.scrollTo(0, 0);
 }, [currentScreen]);
 
+// Auto-scroll to bottom of messages with throttling
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+  
+  return () => clearTimeout(timeoutId);
+}, [messages]);
+
   // Check for existing auth token on mount
   useEffect(() => {
     const token = localStorage.getItem('mmc_token');
