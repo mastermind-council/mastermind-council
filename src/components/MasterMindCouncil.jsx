@@ -832,7 +832,7 @@ useEffect(() => {
     const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
 
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
+      <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative max-w-md lg:max-w-none mx-auto">
         {/* Sidebar Overlay */}
         {sidebarOpen && (
           <div
