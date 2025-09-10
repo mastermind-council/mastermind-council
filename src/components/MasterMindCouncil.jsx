@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 // Cosmic particle system component
 const CosmicParticles = ({ count = 600 }) => {
