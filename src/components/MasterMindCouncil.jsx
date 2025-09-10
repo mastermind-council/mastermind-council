@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 
 // Cosmic particle system component
 const CosmicParticles = ({ count = 600 }) => {
@@ -989,14 +988,7 @@ useEffect(() => {
                   ? 'bg-purple-600 text-white rounded-br-md'
                   : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
               }`}>
-                <ReactMarkdown 
-                  className="text-lg"
-                  components={{
-                    p: ({children}) => <p className="mb-4">{children}</p>
-                  }}
-                >
-                  {message.text}
-                </ReactMarkdown>
+                <p className="text-lg">{message.text}</p>
                 <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
               </div>
             </div>
