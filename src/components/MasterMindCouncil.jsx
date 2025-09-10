@@ -984,7 +984,7 @@ useEffect(() => {
 
           {messages.map((message) => (
             <div key={message.id} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-sm lg:max-w-lg px-4 py-3 rounded-2xl ${
+              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                 message.sender === 'user'
                   ? 'bg-purple-600 text-white rounded-br-md'
                   : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
