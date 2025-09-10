@@ -930,7 +930,7 @@ useEffect(() => {
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
+        <div className="flex items-center justify-between p-6 bg-black/20 backdrop-blur-xl border-b border-white/10 relative z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -941,14 +941,20 @@ useEffect(() => {
             </button>
           </div>
 
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
-            <div className="text-sm md:text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent text-center">
-              THE MASTER MIND COUNCIL™
-            </div>
-            <div className="text-sm font-medium text-white/80">
-              {advisor.name} - {advisor.title}
-            </div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2">
+           <div className="text-sm md:text-lg font-normal tracking-wide bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent text-center">
+             THE MASTER MIND COUNCIL™
           </div>
+          <div className="w-12 h-12 rounded-full overflow-hidden">
+           <img 
+             src="/images/dr-kai.png" 
+             alt="Dr. Kai"
+             className="w-full h-full object-cover"
+           />
+         </div>
+         <div className="text-sm font-medium text-white">Dr. Kai</div>
+         <div className="text-xs text-white/60">Executive Life Coach</div>
+       </div>
 
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${
