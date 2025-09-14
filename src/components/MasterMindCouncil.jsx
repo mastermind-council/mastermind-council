@@ -307,14 +307,21 @@ useEffect(() => {
  
   const scrollToShowUserMessage = () => {
   const messagesContainer = document.querySelector('.chat-messages');
-  if (messagesContainer && messages.length > 0) {
+  if (messagesContainer) {
     // Wait for DOM to update with new message
     setTimeout(() => {
-      const lastUserMessage = messagesContainer.querySelector('.message-row:last-child');
-      if (lastUserMessage) {
-        lastUserMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Get all message rows
+      const messageRows = messagesContainer.querySelectorAll('.message-row');
+      if (messageRows.length >= 2) {
+        // Find the second-to-last message (the user message we just added)
+        // The last one will be the assistant message placeholder
+        const userMessage = messageRows[messageRows.length - 2];
+        userMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (messageRows.length === 1) {
+        // If only one message, scroll to it
+        messageRows[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 100);
+    }, 150);
   }
 };
 
