@@ -485,10 +485,12 @@ while (true) {
     nurture: { name: 'Nurture', emoji: '🌱', description: 'Gentle support', color: 'text-purple-400' }
   };
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll to bottom of messages (but not during streaming)
   useEffect(() => {
+   if (!isTyping) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+   }
+  }, [messages, isTyping]);
 
   // Login Screen with Real Authentication
   const LoginScreen = () => (
