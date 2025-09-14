@@ -305,10 +305,16 @@ useEffect(() => {
   };
 
  
-  const scrollToTop = () => {
+  const scrollToShowUserMessage = () => {
   const messagesContainer = document.querySelector('.chat-messages');
-  if (messagesContainer) {
-    messagesContainer.scrollTo({ top: 0, behavior: 'smooth' });
+  if (messagesContainer && messages.length > 0) {
+    // Wait for DOM to update with new message
+    setTimeout(() => {
+      const lastUserMessage = messagesContainer.querySelector('.message-row:last-child');
+      if (lastUserMessage) {
+        lastUserMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 };
 
@@ -345,7 +351,7 @@ useEffect(() => {
     inputElement.focus();
 
     // Scroll to top and lock there during streaming
-   setTimeout(() => scrollToTop(), 50);
+   scrollToShowUserMessage();
     
     try {
       // Call our streaming API endpoint with auth token
@@ -485,12 +491,12 @@ while (true) {
     nurture: { name: 'Nurture', emoji: '🌱', description: 'Gentle support', color: 'text-purple-400' }
   };
 
-  // Auto-scroll to bottom of messages (but not during streaming)
-  useEffect(() => {
-   if (!isTyping) {
+  // Only auto-scroll when not in a conversation and not typing
+useEffect(() => {
+  if (!isTyping && messages.length === 0) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-   }
-  }, [messages, isTyping]);
+  }
+}, [messages, isTyping]);
 
   // Login Screen with Real Authentication
   const LoginScreen = () => (
