@@ -63,6 +63,21 @@ const CosmicParticles = ({ count = 600 }) => {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+
+        /* NEW: Scroll anchoring rules to prevent shaking */
+        .chat-messages {
+          overflow-anchor: none;
+          scroll-behavior: auto;
+        }
+  
+        .message-row {
+         overflow-anchor: none;
+         contain: content;
+        }
+  
+        .bottom-anchor {
+         overflow-anchor: auto;
+        }        
       `}</style>
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map((particle) => (
