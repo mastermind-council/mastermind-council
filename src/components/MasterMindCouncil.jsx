@@ -507,13 +507,6 @@ while (true) {
     nurture: { name: 'Nurture', emoji: '🌱', description: 'Gentle support', color: 'text-purple-400' }
   };
 
-// Only auto-scroll when not in a conversation and not typing
-useEffect(() => {
-  console.log('AUTO-SCROLL useEffect triggered:', { 
-    isTyping, 
-    messagesLength: messages.length,
-    willScroll: (!isTyping && messages.length === 0)
-  });
   
   // Only scroll to bottom when starting completely fresh
   if (!isTyping && messages.length === 0 && !conversationLoaded) {
