@@ -415,8 +415,6 @@ stream.reset('');
     }
   };
 
-};
-
   // Update the streaming message with buffered content
   useEffect(() => {
     if (!stream.value) return;
