@@ -337,12 +337,23 @@ useEffect(() => {
 useEffect(() => {
   if (!stream.value) return;
   
+  // Preserve scroll position during streaming updates
+  const messagesContainer = document.querySelector('.chat-messages');
+  const currentScrollTop = messagesContainer?.scrollTop;
+  
   setMessages(prev => {
     const last = prev[prev.length - 1];
     if (!last || last.sender !== 'assistant') return prev;
     
     return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
   });
+  
+  // Restore scroll position after React re-render
+  if (messagesContainer && currentScrollTop !== undefined) {
+    setTimeout(() => {
+      messagesContainer.scrollTop = currentScrollTop;
+    }, 0);
+  }
 }, [stream.value]);
   
   // Handle sending messages with OpenAI API integration
