@@ -408,16 +408,15 @@ while (true) {
 
 // Update the streaming message with buffered content
 useEffect(() => {
+  if (!stream.value) return;
+  
   setMessages(prev => {
     const last = prev[prev.length - 1];
-    if (!last || last.sender !== 'assistant' || !stream.value) return prev;
+    if (!last || last.sender !== 'assistant') return prev;
     
     return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
   });
 }, [stream.value]);
-
-// Reset stream after everything is complete
-setTimeout(() => stream.reset(''), 50);
   
   // Advisor configuration
   const advisors = {
