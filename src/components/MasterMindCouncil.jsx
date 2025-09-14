@@ -308,16 +308,17 @@ useEffect(() => {
   const scrollToUserMessage = () => {
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
-    console.log('Container found:', messagesContainer);
     if (messagesContainer) {
-      console.log('Scroll position before:', messagesContainer.scrollTop);
-      messagesContainer.scrollTop = 0;
-      console.log('Scroll position after:', messagesContainer.scrollTop);
-      
-      // Check again after a brief delay to see if something overrides it
-      setTimeout(() => {
-        console.log('Scroll position 100ms later:', messagesContainer.scrollTop);
-      }, 100);
+      const messageRows = messagesContainer.querySelectorAll('.message-row');
+      if (messageRows.length >= 2) {
+        // Get the user's message position relative to the container
+        const userMessage = messageRows[messageRows.length - 2];
+        const userMessageTop = userMessage.offsetTop;
+        
+        console.log('User message position:', userMessageTop);
+        messagesContainer.scrollTop = userMessageTop;
+        console.log('Set scroll to:', userMessageTop);
+      }
     }
   }, 200);
 };
