@@ -423,10 +423,6 @@ useEffect(() => {
     const last = prev[prev.length - 1];
     if (!last || last.sender !== 'assistant') return prev;
     
-    // Only update if the message is currently shorter than stream value
-    // This prevents overwriting finalized messages
-    if (last.text.length >= stream.value.length) return prev;
-    
     return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
   });
 }, [stream.value]);
