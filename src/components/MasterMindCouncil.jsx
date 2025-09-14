@@ -306,6 +306,7 @@ useEffect(() => {
 
  
   const scrollToUserMessage = () => {
+  console.log('scrollToUserMessage CALLED'); // Add this line
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
     if (messagesContainer) {
