@@ -415,17 +415,21 @@ stream.reset('');
     }
   };
 
-  // Update the streaming message with buffered content
-  useEffect(() => {
-    if (!stream.value) return;
+// Update the streaming message with buffered content
+useEffect(() => {
+  if (!stream.value) return;
+  
+  setMessages(prev => {
+    const last = prev[prev.length - 1];
+    if (!last || last.sender !== 'assistant') return prev;
     
-    setMessages(prev => {
-      const last = prev[prev.length - 1];
-      if (!last || last.sender !== 'assistant') return prev;
-      
-      return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
-    });
-  }, [stream.value]);
+    // Only update if the message is currently shorter than stream value
+    // This prevents overwriting finalized messages
+    if (last.text.length >= stream.value.length) return prev;
+    
+    return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
+  });
+}, [stream.value]);
   
   // Advisor configuration
   const advisors = {
