@@ -306,13 +306,18 @@ useEffect(() => {
 
  
   const scrollToUserMessage = () => {
-  const messagesContainer = document.querySelector('.chat-messages');
-  if (messagesContainer) {
-    // Simple approach: scroll to a fixed position from the top
-    setTimeout(() => {
-      messagesContainer.scrollTop = 0;
-    }, 100);
-  }
+  // More robust selector and timing
+  setTimeout(() => {
+    const messagesContainer = document.querySelector('.chat-messages');
+    console.log('Container found:', messagesContainer); // Debug log
+    if (messagesContainer) {
+      console.log('Scrolling to top'); // Debug log
+      messagesContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, 200); // Longer delay
 };
 
 // Update the streaming message with buffered content
@@ -408,6 +413,7 @@ while (true) {
         const content = parsed.choices[0]?.delta?.content || '';
         
       if (content) {
+        console.log('Token received:', content); // Debug what tokens are coming through
         stream.append(content);
       }
       } catch (e) {
