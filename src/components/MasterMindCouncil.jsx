@@ -507,9 +507,16 @@ while (true) {
     nurture: { name: 'Nurture', emoji: '🌱', description: 'Gentle support', color: 'text-purple-400' }
   };
 
-  // Only auto-scroll when not in a conversation and not typing
+// Only auto-scroll when not in a conversation and not typing
 useEffect(() => {
+  console.log('AUTO-SCROLL useEffect triggered:', { 
+    isTyping, 
+    messagesLength: messages.length,
+    willScroll: (!isTyping && messages.length === 0)
+  });
+  
   if (!isTyping && messages.length === 0) {
+    console.log('AUTO-SCROLL: Scrolling to bottom!');
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 }, [messages, isTyping]);
