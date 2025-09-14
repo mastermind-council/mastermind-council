@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-// NEW: Token batching hook to prevent excessive re-renders
+// Token batching hook to prevent excessive re-renders
 const useStreamBuffer = () => {
   const [value, setValue] = useState("");
   const bufferRef = useRef("");
@@ -30,6 +30,54 @@ const useStreamBuffer = () => {
 
   return { value, append, reset };
 };
+
+// Hook: keep top pinned and cancel on user scroll
+function usePinTopDuringStreaming({
+  containerRef,
+  rowRefs,
+  anchoredMessageId,
+  staging,
+  onCancel,
+}) {
+  // Keep the anchored row snapped to the top while staging
+  React.useLayoutEffect(() => {
+    if (!staging || !anchoredMessageId) return;
+    const anchorEl = rowRefs.current.get(anchoredMessageId);
+    if (!anchorEl) return;
+
+    // After layout, ensure it's exactly at the top edge (no smooth)
+    const id = requestAnimationFrame(() => {
+      anchorEl.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [staging, anchoredMessageId, rowRefs]);
+
+  // Cancel staging if the user scrolls the anchored row away from the top
+  React.useEffect(() => {
+    if (!staging || !anchoredMessageId) return;
+
+    const container = containerRef.current;
+    const anchorEl = rowRefs.current.get(anchoredMessageId);
+    if (!container || !anchorEl) return;
+
+    const TOP_TOLERANCE_PX = 8; // allow tiny wiggle to avoid false positives
+
+    const onScroll = () => {
+      // Distance between anchor and the *visible* top of the scroll container
+      const containerTop = container.getBoundingClientRect().top;
+      const anchorTop = anchorEl.getBoundingClientRect().top;
+      const delta = Math.round(anchorTop - containerTop);
+
+      // If user moved away from the pinned-top position, stop staging
+      if (Math.abs(delta) > TOP_TOLERANCE_PX) {
+        onCancel();
+      }
+    };
+
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [staging, anchoredMessageId, containerRef, rowRefs, onCancel]);
+}
 
 // Cosmic particle system component
 const CosmicParticles = ({ count = 600 }) => {
@@ -92,20 +140,32 @@ const CosmicParticles = ({ count = 600 }) => {
           100% { transform: rotate(360deg); }
         }
 
-        /* NEW: Scroll anchoring rules to prevent shaking */
+        /* Scroll anchoring rules to prevent shaking */
         .chat-messages {
           overflow-anchor: none;
           scroll-behavior: auto;
         }
   
         .message-row {
-         overflow-anchor: none;
-         contain: content;
+          overflow-anchor: none;
+          contain: content;
+        }
+
+        .message-row.anchor {
+          overflow-anchor: auto;
         }
   
         .bottom-anchor {
-         overflow-anchor: none;
-        }        
+          overflow-anchor: none;
+        }
+
+        .chat-root.staging .bottom-anchor {
+          overflow-anchor: none;
+        }
+
+        .chat-root:not(.staging) .bottom-anchor {
+          overflow-anchor: auto;
+        }
       `}</style>
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map((particle) => (
@@ -127,7 +187,6 @@ const CosmicParticles = ({ count = 600 }) => {
     </>
   );
 };
-
 
 // Breathing avatar component
 const BreathingAvatar = ({ emoji, gradient, size = 'lg', active = false }) => {
@@ -174,6 +233,10 @@ const MasterMindCouncil = () => {
   const [conversationLoaded, setConversationLoaded] = useState(false);
   const stream = useStreamBuffer();
 
+  // NEW: Pinning state
+  const [anchoredMessageId, setAnchoredMessageId] = useState(null);
+  const [staging, setStaging] = useState(false);
+
   // Voice state
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -181,15 +244,35 @@ const MasterMindCouncil = () => {
   // Form state
   const [showPassword, setShowPassword] = useState(false);
 
+  // Refs
   const messagesEndRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const chatInputRef = useRef(null);
+  
+  // NEW: Refs for pinning functionality
+  const scrollRef = useRef(null);
+  const rowRefs = useRef(new Map());
 
-// Auto-scroll to top when screen changes
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, [currentScreen]);
+  // NEW: Cancel staging helper
+  const cancelStaging = useCallback(() => {
+    setAnchoredMessageId(null);
+    setStaging(false);
+  }, []);
+
+  // NEW: Use the pinning hook
+  usePinTopDuringStreaming({
+    containerRef: scrollRef,
+    rowRefs,
+    anchoredMessageId,
+    staging,
+    onCancel: cancelStaging,
+  });
+
+  // Auto-scroll to top when screen changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentScreen]);
 
   // Check for existing auth token on mount
   useEffect(() => {
@@ -290,6 +373,7 @@ useEffect(() => {
     setCurrentScreen('login');
     setMessages([]);
     setConversationLoaded(false);
+    cancelStaging(); // Clear any staging state
   };
 
   // Handle Enter key on login form
@@ -304,59 +388,30 @@ useEffect(() => {
     }
   };
 
- 
-  const scrollToUserMessage = () => {
-  console.log('scrollToUserMessage CALLED');
-  setTimeout(() => {
-    const messagesContainer = document.querySelector('.chat-messages');
-    if (messagesContainer) {
-      // Find all user messages (they have different styling than assistant messages)
-      const userMessages = messagesContainer.querySelectorAll('.message-row .bg-purple-600');
-      console.log('User messages found:', userMessages.length);
-      
-      if (userMessages.length > 0) {
-        // Get the last user message
-        const lastUserMessage = userMessages[userMessages.length - 1];
-        const messageRow = lastUserMessage.closest('.message-row');
-        const messageText = lastUserMessage.textContent.substring(0, 50);
-        const messagePosition = messageRow.offsetTop;
-        
-        console.log('Latest user message:', messageText);
-        console.log('Message position:', messagePosition);
-        console.log('Before scroll:', messagesContainer.scrollTop);
-        
-        messagesContainer.scrollTop = messagePosition;
-        
-        console.log('After scroll:', messagesContainer.scrollTop);
-      }
+  // NEW: Scroll to bottom helper
+  const scrollToBottom = (behavior = "smooth") => {
+    const container = scrollRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: behavior === "instant" ? "auto" : "smooth"
+      });
     }
-  }, 200);
-};
+  };
 
-// Update the streaming message with buffered content
-useEffect(() => {
-  if (!stream.value) return;
-  
-  // Preserve scroll position during streaming updates
-  const messagesContainer = document.querySelector('.chat-messages');
-  const currentScrollTop = messagesContainer?.scrollTop;
-  
-  setMessages(prev => {
-    const last = prev[prev.length - 1];
-    if (!last || last.sender !== 'assistant') return prev;
+  // Update the streaming message with buffered content
+  useEffect(() => {
+    if (!stream.value) return;
     
-    return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
-  });
-  
-  // Restore scroll position after React re-render
-  if (messagesContainer && currentScrollTop !== undefined) {
-    setTimeout(() => {
-      messagesContainer.scrollTop = currentScrollTop;
-    }, 0);
-  }
-}, [stream.value]);
-  
-  // Handle sending messages with OpenAI API integration
+    setMessages(prev => {
+      const last = prev[prev.length - 1];
+      if (!last || last.sender !== 'assistant') return prev;
+      
+      return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
+    });
+  }, [stream.value]);
+
+  // NEW: Handle sending messages with pinning functionality
   const handleSendMessage = async () => {
     const inputElement = chatInputRef.current;
     if (!inputElement) return;
@@ -364,8 +419,9 @@ useEffect(() => {
     const messageText = inputElement.value.trim();
     if (!messageText) return;
     
+    const userId = `user-${Date.now()}`;
     const userMessage = {
-      id: Date.now(),
+      id: userId,
       text: messageText,
       sender: 'user',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -376,8 +432,9 @@ useEffect(() => {
     inputElement.value = '';
     inputElement.focus();
 
-    // Scroll to top and lock there during streaming
-   scrollToUserMessage();
+    // NEW: Engage staging - anchor the user's row to the top
+    setAnchoredMessageId(userId);
+    setStaging(true);
     
     try {
       // Call our streaming API endpoint with auth token
@@ -400,52 +457,57 @@ useEffect(() => {
       }
 
       // Handle streaming response
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
 
-// Create assistant message that we'll build up
-const assistantMessage = {
-  id: Date.now() + 1,
-  text: '',
-  sender: 'assistant',
-  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-};
+      // Create assistant message that we'll build up
+      const streamId = `assistant-${Date.now()}`;
+      const assistantMessage = {
+        id: streamId,
+        text: '',
+        sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
 
-setMessages(prev => [...prev, assistantMessage]);
-setIsTyping(false);
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
 
-// Reset stream buffer for new message
-stream.reset('');
+      // Reset stream buffer for new message
+      stream.reset('');
 
-// Read the streaming response
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
+      // Read the streaming response
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-  const chunk = decoder.decode(value);
-  const lines = chunk.split('\n');
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
 
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      const data = line.slice(6);
-      if (data === '[DONE]') {
-        break;
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              break;
+            }
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || '';
+              
+              if (content) {
+                stream.append(content);
+              }
+            } catch (e) {
+              // Skip malformed JSON
+            }
+          }
+        }
       }
+
+      // NEW: Finalize - restore normal behavior
+      cancelStaging();
+      requestAnimationFrame(() => scrollToBottom("instant"));
       
-      try {
-        const parsed = JSON.parse(data);
-        const content = parsed.choices[0]?.delta?.content || '';
-        
-      if (content) {
-        console.log('Token received:', content); // Debug what tokens are coming through
-        stream.append(content);
-      }
-      } catch (e) {
-        // Skip malformed JSON
-      }
-    }
-  }
-}    
     } catch (error) {
       setIsTyping(false);
       console.error('Error:', error);
@@ -459,12 +521,12 @@ while (true) {
       };
       
       setMessages(prev => [...prev, errorMessage]);
+      
+      // NEW: Clear staging on error
+      cancelStaging();
     }
   };
 
-
-
-  
   // Advisor configuration
   const advisors = {
     'dr-kai': {
@@ -517,7 +579,6 @@ while (true) {
     balanced: { name: 'Balanced', emoji: '⚖️', description: 'Thoughtful guidance', color: 'text-green-400' },
     nurture: { name: 'Nurture', emoji: '🌱', description: 'Gentle support', color: 'text-purple-400' }
   };
-
 
   // Login Screen with Real Authentication
   const LoginScreen = () => (
@@ -930,7 +991,7 @@ while (true) {
     const advisor = advisors[selectedAdvisor] || advisors['dr-kai'];
 
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative">
+      <div className={`h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black relative chat-root ${staging ? 'staging' : ''}`}>
         {/* Sidebar Overlay */}
         {sidebarOpen && (
           <div
@@ -958,7 +1019,6 @@ while (true) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
 
             <div className="mb-8">
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-1">YOUR COUNCIL</div>
@@ -1060,7 +1120,10 @@ while (true) {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 relative z-10 chat-messages">
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto p-4 relative z-10 chat-messages"
+        >
           {messages.length === 0 && !conversationLoaded && (
             <div className="text-center py-20">
               <div className="relative inline-block mb-6">
@@ -1081,7 +1144,19 @@ while (true) {
           )}
 
           {messages.map((message) => (
-            <div key={message.id} className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div 
+              key={message.id} 
+              ref={(el) => {
+                if (el) {
+                  rowRefs.current.set(message.id, el);
+                } else {
+                  rowRefs.current.delete(message.id);
+                }
+              }}
+              className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'} ${
+                anchoredMessageId === message.id ? 'anchor' : ''
+              }`}
+            >
               <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                 message.sender === 'user'
                   ? 'bg-purple-600 text-white rounded-br-md'
