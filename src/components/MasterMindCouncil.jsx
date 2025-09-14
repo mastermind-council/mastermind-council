@@ -345,7 +345,7 @@ useEffect(() => {
     setIsTyping(true);
 
     // Scroll to top and lock there during streaming
-   scrollToTop();
+   setTimeout(() => scrollToTop(), 50);
     
     try {
       // Call our streaming API endpoint with auth token
