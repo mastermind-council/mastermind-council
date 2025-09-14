@@ -104,7 +104,7 @@ const CosmicParticles = ({ count = 600 }) => {
         }
   
         .bottom-anchor {
-         overflow-anchor: auto;
+         overflow-anchor: none;
         }        
       `}</style>
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
