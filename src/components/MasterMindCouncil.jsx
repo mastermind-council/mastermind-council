@@ -310,26 +310,22 @@ useEffect(() => {
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
     if (messagesContainer) {
-      const messageRows = messagesContainer.querySelectorAll('.message-row');
-      console.log('Total message rows found:', messageRows.length);
+      // Find all user messages (they have different styling than assistant messages)
+      const userMessages = messagesContainer.querySelectorAll('.message-row .bg-purple-600');
+      console.log('User messages found:', userMessages.length);
       
-      // Let's see what messages we're finding
-      messageRows.forEach((row, index) => {
-        const messageText = row.textContent.substring(0, 50); // First 50 chars
-        console.log(`Message ${index}:`, messageText);
-      });
-      
-      if (messageRows.length >= 2) {
-        // Find your message (second to last, since assistant placeholder is last)
-        const userMessage = messageRows[messageRows.length - 2];
-        const userMessageText = userMessage.textContent.substring(0, 50);
-        const userMessagePosition = userMessage.offsetTop;
+      if (userMessages.length > 0) {
+        // Get the last user message
+        const lastUserMessage = userMessages[userMessages.length - 1];
+        const messageRow = lastUserMessage.closest('.message-row');
+        const messageText = lastUserMessage.textContent.substring(0, 50);
+        const messagePosition = messageRow.offsetTop;
         
-        console.log('Targeting message:', userMessageText);
-        console.log('User message position:', userMessagePosition);
+        console.log('Latest user message:', messageText);
+        console.log('Message position:', messagePosition);
         console.log('Before scroll:', messagesContainer.scrollTop);
         
-        messagesContainer.scrollTop = userMessagePosition;
+        messagesContainer.scrollTop = messagePosition;
         
         console.log('After scroll:', messagesContainer.scrollTop);
       }
