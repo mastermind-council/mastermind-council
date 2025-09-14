@@ -305,23 +305,13 @@ useEffect(() => {
   };
 
  
-  const scrollToShowUserMessage = () => {
+  const scrollToUserMessage = () => {
   const messagesContainer = document.querySelector('.chat-messages');
   if (messagesContainer) {
-    // Wait for DOM to update with new message
+    // Simple approach: scroll to a fixed position from the top
     setTimeout(() => {
-      // Get all message rows
-      const messageRows = messagesContainer.querySelectorAll('.message-row');
-      if (messageRows.length >= 2) {
-        // Find the second-to-last message (the user message we just added)
-        // The last one will be the assistant message placeholder
-        const userMessage = messageRows[messageRows.length - 2];
-        userMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else if (messageRows.length === 1) {
-        // If only one message, scroll to it
-        messageRows[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 150);
+      messagesContainer.scrollTop = 0;
+    }, 100);
   }
 };
 
@@ -358,7 +348,7 @@ useEffect(() => {
     inputElement.focus();
 
     // Scroll to top and lock there during streaming
-   scrollToShowUserMessage();
+   scrollToUserMessage();
     
     try {
       // Call our streaming API endpoint with auth token
