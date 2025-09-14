@@ -3,6 +3,34 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
+// NEW: Token batching hook to prevent excessive re-renders
+const useStreamBuffer = () => {
+  const [value, setValue] = useState("");
+  const bufferRef = useRef("");
+  const rafRef = useRef(null);
+
+  const append = useCallback((chunk) => {
+    bufferRef.current += chunk;
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const next = bufferRef.current;
+        bufferRef.current = "";
+        setValue(prev => prev + next);
+      });
+    }
+  }, []);
+
+  const reset = useCallback((initial = "") => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    bufferRef.current = "";
+    setValue(initial);
+  }, []);
+
+  return { value, append, reset };
+};
+
 // Cosmic particle system component
 const CosmicParticles = ({ count = 600 }) => {
   const [particles, setParticles] = useState([]);
@@ -144,6 +172,7 @@ const MasterMindCouncil = () => {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationLoaded, setConversationLoaded] = useState(false);
+  const stream = useStreamBuffer();
 
   // Voice state
   const [isRecording, setIsRecording] = useState(false);
@@ -316,52 +345,60 @@ useEffect(() => {
       }
 
       // Handle streaming response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      
-      // Create assistant message that we'll build up
-      const assistantMessage = {
-        id: Date.now() + 1,
-        text: '',
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-      setIsTyping(false);
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
 
-      // Read the streaming response
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+// Create assistant message that we'll build up
+const assistantMessage = {
+  id: Date.now() + 1,
+  text: '',
+  sender: 'assistant',
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+};
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+setMessages(prev => [...prev, assistantMessage]);
+setIsTyping(false);
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') {
-              break;
-            }
-            
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices[0]?.delta?.content || '';
-              
-              if (content) {
-                setMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessage.id 
-                    ? { ...msg, text: msg.text + content }
-                    : msg
-                ));
-              }
-            } catch (e) {
-              // Skip malformed JSON
-            }
-          }
-        }
+// Reset stream buffer for new message
+stream.reset('');
+
+// Read the streaming response
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+
+  const chunk = decoder.decode(value);
+  const lines = chunk.split('\n');
+
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = line.slice(6);
+      if (data === '[DONE]') {
+        break;
       }
+      
+      try {
+        const parsed = JSON.parse(data);
+        const content = parsed.choices[0]?.delta?.content || '';
+        
+        if (content) {
+          // NEW: Append to buffer instead of direct state update
+          stream.append(content);
+        }
+      } catch (e) {
+        // Skip malformed JSON
+      }
+    }
+  }
+}
+
+// NEW: Finalize the message with the complete text
+setMessages(prev => prev.map(msg => 
+  msg.id === assistantMessage.id 
+    ? { ...msg, text: stream.value }
+    : msg
+));
+stream.reset('');     
     } catch (error) {
       setIsTyping(false);
       console.error('Error:', error);
