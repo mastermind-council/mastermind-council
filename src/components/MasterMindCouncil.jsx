@@ -415,6 +415,20 @@ stream.reset('');
     }
   };
 
+};
+
+  // Update the streaming message with buffered content
+  useEffect(() => {
+    if (!stream.value) return;
+    
+    setMessages(prev => {
+      const last = prev[prev.length - 1];
+      if (!last || last.sender !== 'assistant') return prev;
+      
+      return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
+    });
+  }, [stream.value]);
+  
   // Advisor configuration
   const advisors = {
     'dr-kai': {
