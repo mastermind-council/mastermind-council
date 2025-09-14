@@ -310,9 +310,14 @@ useEffect(() => {
     const messagesContainer = document.querySelector('.chat-messages');
     console.log('Container found:', messagesContainer);
     if (messagesContainer) {
-      console.log('Scrolling to top');
-      // Use scrollTop directly instead of scrollTo with smooth behavior
+      console.log('Scroll position before:', messagesContainer.scrollTop);
       messagesContainer.scrollTop = 0;
+      console.log('Scroll position after:', messagesContainer.scrollTop);
+      
+      // Check again after a brief delay to see if something overrides it
+      setTimeout(() => {
+        console.log('Scroll position 100ms later:', messagesContainer.scrollTop);
+      }, 100);
     }
   }, 200);
 };
