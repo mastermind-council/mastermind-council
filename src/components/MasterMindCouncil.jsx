@@ -309,16 +309,21 @@ useEffect(() => {
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
     if (messagesContainer) {
-      const messageRows = messagesContainer.querySelectorAll('.message-row');
-      if (messageRows.length >= 2) {
-        // Get the user's message position relative to the container
-        const userMessage = messageRows[messageRows.length - 2];
-        const userMessageTop = userMessage.offsetTop;
-        
-        console.log('User message position:', userMessageTop);
-        messagesContainer.scrollTop = userMessageTop;
-        console.log('Set scroll to:', userMessageTop);
-      }
+      console.log('Before scroll:', messagesContainer.scrollTop);
+      
+      // Set to a very obvious position for testing
+      messagesContainer.scrollTop = 500;
+      
+      console.log('Immediately after setting to 500:', messagesContainer.scrollTop);
+      
+      // Check if something overrides it quickly
+      setTimeout(() => {
+        console.log('100ms later:', messagesContainer.scrollTop);
+      }, 100);
+      
+      setTimeout(() => {
+        console.log('500ms later:', messagesContainer.scrollTop);
+      }, 500);
     }
   }, 200);
 };
