@@ -977,7 +977,7 @@ useEffect(() => {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 relative z-10">
+        <div className="flex-1 overflow-y-auto p-4 relative z-10 chat-messages">
           {messages.length === 0 && !conversationLoaded && (
             <div className="text-center py-20">
               <div className="relative inline-block mb-6">
@@ -998,7 +998,7 @@ useEffect(() => {
           )}
 
           {messages.map((message) => (
-            <div key={message.id} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={message.id} className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                 message.sender === 'user'
                   ? 'bg-purple-600 text-white rounded-br-md'
@@ -1030,7 +1030,7 @@ useEffect(() => {
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="bottom-anchor" />
         </div>
 
         {/* Input Area */}
