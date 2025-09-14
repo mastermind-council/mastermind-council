@@ -382,23 +382,20 @@ while (true) {
         const content = parsed.choices[0]?.delta?.content || '';
         
         if (content) {
-          // NEW: Append to buffer instead of direct state update
-          stream.append(content);
-        }
+  // Update both the buffer AND the message state
+  stream.append(content);
+  setMessages(prev => prev.map(msg => 
+    msg.id === assistantMessage.id 
+      ? { ...msg, text: stream.value + content }
+      : msg
+  ));
+}
       } catch (e) {
         // Skip malformed JSON
       }
     }
   }
-}
-
-// NEW: Finalize the message with the complete text
-setMessages(prev => prev.map(msg => 
-  msg.id === assistantMessage.id 
-    ? { ...msg, text: stream.value }
-    : msg
-));
-stream.reset('');     
+}    
     } catch (error) {
       setIsTyping(false);
       console.error('Error:', error);
