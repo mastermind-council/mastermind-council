@@ -515,11 +515,12 @@ useEffect(() => {
     willScroll: (!isTyping && messages.length === 0)
   });
   
-  if (!isTyping && messages.length === 0) {
+  // Only scroll to bottom when starting completely fresh
+  if (!isTyping && messages.length === 0 && !conversationLoaded) {
     console.log('AUTO-SCROLL: Scrolling to bottom!');
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
-}, [messages, isTyping]);
+}, [messages, isTyping, conversationLoaded]);
 
   // Login Screen with Real Authentication
   const LoginScreen = () => (
