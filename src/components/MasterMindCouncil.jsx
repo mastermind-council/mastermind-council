@@ -381,15 +381,9 @@ while (true) {
         const parsed = JSON.parse(data);
         const content = parsed.choices[0]?.delta?.content || '';
         
-        if (content) {
-  // Update both the buffer AND the message state
-  stream.append(content);
-  setMessages(prev => prev.map(msg => 
-    msg.id === assistantMessage.id 
-      ? { ...msg, text: stream.value + content }
-      : msg
-  ));
-}
+      if (content) {
+        stream.append(content);
+      }
       } catch (e) {
         // Skip malformed JSON
       }
@@ -423,6 +417,9 @@ useEffect(() => {
     return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
   });
 }, [stream.value]);
+
+// After streaming completes, ensure final message is preserved
+setTimeout(() => stream.reset(''), 100);
   
   // Advisor configuration
   const advisors = {
