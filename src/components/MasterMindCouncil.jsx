@@ -306,25 +306,25 @@ useEffect(() => {
 
  
   const scrollToUserMessage = () => {
-  console.log('scrollToUserMessage CALLED'); // Add this line
+  console.log('scrollToUserMessage CALLED');
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
     if (messagesContainer) {
-      console.log('Before scroll:', messagesContainer.scrollTop);
+      const messageRows = messagesContainer.querySelectorAll('.message-row');
+      console.log('Total message rows found:', messageRows.length);
       
-      // Set to a very obvious position for testing
-      messagesContainer.scrollTop = 500;
-      
-      console.log('Immediately after setting to 500:', messagesContainer.scrollTop);
-      
-      // Check if something overrides it quickly
-      setTimeout(() => {
-        console.log('100ms later:', messagesContainer.scrollTop);
-      }, 100);
-      
-      setTimeout(() => {
-        console.log('500ms later:', messagesContainer.scrollTop);
-      }, 500);
+      if (messageRows.length >= 2) {
+        // Find your message (second to last, since assistant placeholder is last)
+        const userMessage = messageRows[messageRows.length - 2];
+        const userMessagePosition = userMessage.offsetTop;
+        
+        console.log('User message position:', userMessagePosition);
+        console.log('Before scroll:', messagesContainer.scrollTop);
+        
+        messagesContainer.scrollTop = userMessagePosition;
+        
+        console.log('After scroll:', messagesContainer.scrollTop);
+      }
     }
   }, 200);
 };
