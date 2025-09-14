@@ -417,9 +417,6 @@ useEffect(() => {
     return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
   });
 }, [stream.value]);
-
-// After streaming completes, ensure final message is preserved
-setTimeout(() => stream.reset(''), 100);
   
   // Advisor configuration
   const advisors = {
