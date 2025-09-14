@@ -306,18 +306,15 @@ useEffect(() => {
 
  
   const scrollToUserMessage = () => {
-  // More robust selector and timing
   setTimeout(() => {
     const messagesContainer = document.querySelector('.chat-messages');
-    console.log('Container found:', messagesContainer); // Debug log
+    console.log('Container found:', messagesContainer);
     if (messagesContainer) {
-      console.log('Scrolling to top'); // Debug log
-      messagesContainer.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      console.log('Scrolling to top');
+      // Use scrollTop directly instead of scrollTo with smooth behavior
+      messagesContainer.scrollTop = 0;
     }
-  }, 200); // Longer delay
+  }, 200);
 };
 
 // Update the streaming message with buffered content
