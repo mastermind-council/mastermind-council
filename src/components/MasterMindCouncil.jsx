@@ -339,10 +339,10 @@ useEffect(() => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    setIsTyping(true);
     setMessages(prev => [...prev, userMessage]);
     inputElement.value = '';
     inputElement.focus();
-    setIsTyping(true);
 
     // Scroll to top and lock there during streaming
    setTimeout(() => scrollToTop(), 50);
