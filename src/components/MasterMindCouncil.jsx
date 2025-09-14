@@ -304,6 +304,26 @@ useEffect(() => {
     }
   };
 
+ 
+  const scrollToTop = () => {
+  const messagesContainer = document.querySelector('.chat-messages');
+  if (messagesContainer) {
+    messagesContainer.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+// Update the streaming message with buffered content
+useEffect(() => {
+  if (!stream.value) return;
+  
+  setMessages(prev => {
+    const last = prev[prev.length - 1];
+    if (!last || last.sender !== 'assistant') return prev;
+    
+    return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
+  });
+}, [stream.value]);
+  
   // Handle sending messages with OpenAI API integration
   const handleSendMessage = async () => {
     const inputElement = chatInputRef.current;
@@ -324,6 +344,9 @@ useEffect(() => {
     inputElement.focus();
     setIsTyping(true);
 
+    // Scroll to top and lock there during streaming
+   scrollToTop();
+    
     try {
       // Call our streaming API endpoint with auth token
       const token = localStorage.getItem('mmc_token');
@@ -406,17 +429,8 @@ while (true) {
     }
   };
 
-// Update the streaming message with buffered content
-useEffect(() => {
-  if (!stream.value) return;
-  
-  setMessages(prev => {
-    const last = prev[prev.length - 1];
-    if (!last || last.sender !== 'assistant') return prev;
-    
-    return prev.slice(0, -1).concat([{ ...last, text: stream.value }]);
-  });
-}, [stream.value]);
+
+
   
   // Advisor configuration
   const advisors = {
