@@ -99,13 +99,23 @@ const CosmicParticles = ({ count = 600 }) => {
         }
   
         .message-row {
-         overflow-anchor: none;
-         contain: content;
+          overflow-anchor: none;
+          contain: content;
         }
   
         .bottom-anchor {
+          overflow-anchor: auto;
+        } 
+
+        /* Bottom anchor toggles based on staging */
+       .chat-root.staging .bottom-anchor {
          overflow-anchor: none;
-        }        
+        }
+
+        .chat-root:not(.staging) .bottom-anchor {
+          overflow-anchor: auto;
+        }
+       
       `}</style>
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map((particle) => (
