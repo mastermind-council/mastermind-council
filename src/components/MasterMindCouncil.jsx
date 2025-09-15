@@ -202,8 +202,8 @@ const [staging, setStaging] = useState(false);
 const [anchoredMessageId, setAnchoredMessageId] = useState(null);
 
 // Add these new state variables
-const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // Track which message is playing
-const [speechSupported, setSpeechSupported] = useState(false);
+const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
 
 // Auto-scroll to top when screen changes
 useEffect(() => {
