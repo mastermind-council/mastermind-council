@@ -253,6 +253,7 @@ useEffect(() => {
   };
 
   // OpenAI TTS functionality
+// Direct audio streaming without blob URLs
 const handleSpeakMessage = async (messageId, text) => {
   console.log('🔊 Speaker button clicked:', messageId, text.substring(0, 50) + '...');
   
@@ -265,21 +266,18 @@ const handleSpeakMessage = async (messageId, text) => {
     }
     setCurrentlyPlaying(null);
     
-    // If clicking the same message that's playing, just stop
     if (currentlyPlaying === messageId) {
       console.log('🛑 Stopping current audio');
       return;
     }
   }
 
-  // Set loading state
   setAudioLoading(prev => new Set(prev).add(messageId));
   console.log('⏳ Setting loading state for message:', messageId);
 
   try {
     console.log('📡 Calling TTS API...');
     
-    // Call our TTS API
     const response = await fetch('/api/tts', {
       method: 'POST',
       headers: {
@@ -297,18 +295,25 @@ const handleSpeakMessage = async (messageId, text) => {
       throw new Error(`TTS generation failed: ${response.status}`);
     }
 
-    // Get audio blob and create URL
-    const audioBlob = await response.blob();
-    console.log('🎵 Audio blob created:', audioBlob.size, 'bytes');
-    
-    const audioUrl = URL.createObjectURL(audioBlob);
-    console.log('🔗 Audio URL created:', audioUrl);
-
-    // Create and play audio element
-    const audio = new Audio(audioUrl);
+    // Create audio element with direct fetch URL instead of blob
+    const audio = new Audio();
     audio.id = `audio-${messageId}`;
     
-    audio.onloadeddata = () => {
+    // Set source directly to the API endpoint
+    const audioUrl = `/api/tts?messageId=${messageId}&timestamp=${Date.now()}`;
+    
+    // Make another request to get the audio data for this specific audio element
+    const audioResponse = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text, voice: 'coral' }),
+    });
+    
+    const audioBlob = await audioResponse.blob();
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      audio.src = reader.result;
       console.log('✅ Audio loaded, starting playback');
       setAudioLoading(prev => {
         const newSet = new Set(prev);
@@ -318,11 +323,12 @@ const handleSpeakMessage = async (messageId, text) => {
       setCurrentlyPlaying(messageId);
       audio.play().catch(err => console.error('❌ Audio play error:', err));
     };
+    
+    reader.readAsDataURL(audioBlob);
 
     audio.onended = () => {
       console.log('🏁 Audio playback ended');
       setCurrentlyPlaying(null);
-      URL.revokeObjectURL(audioUrl);
     };
 
     audio.onerror = (error) => {
@@ -333,7 +339,6 @@ const handleSpeakMessage = async (messageId, text) => {
         newSet.delete(messageId);
         return newSet;
       });
-      URL.revokeObjectURL(audioUrl);
     };
 
   } catch (error) {
