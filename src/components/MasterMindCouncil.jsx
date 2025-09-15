@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users } from 'lucide-react';
+import { ChevronLeft, Send, Upload, Menu, X, Mic, MicOff, Play, Pause, Leaf, Users, Volume2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // NEW: Token batching hook to prevent excessive re-renders
@@ -1101,22 +1101,36 @@ while (true) {
              data-id={message.id}
              className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'} ${anchoredMessageId === message.id ? 'anchor' : ''}`}
             >
-              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                message.sender === 'user'
-                  ? 'bg-purple-600 text-white rounded-br-md'
-                  : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
+              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl relative ${
+               message.sender === 'user'
+                 ? 'bg-purple-600 text-white rounded-br-md'
+                 : 'bg-white/10 backdrop-blur-lg text-white rounded-bl-md border border-white/10'
               }`}>
                 <ReactMarkdown 
                   className="text-lg prose prose-invert max-w-none"
                   components={{
-                    p: ({children}) => <p className="mb-2">{children}</p>,
-                    strong: ({children}) => <strong className="font-semibold">{children}</strong>
-                  }}
+                     p: ({children}) => <p className="mb-2">{children}</p>,
+                     strong: ({children}) => <strong className="font-semibold">{children}</strong>
+                   }}
                 >
-                  {message.text}
-                </ReactMarkdown>                
-                <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
-              </div>
+               {message.text}
+              </ReactMarkdown>                
+              <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
+  
+             {/* Speaker button for assistant messages only */}
+             {message.sender === 'assistant' && (
+              <button
+                onClick={() => {
+                 // Add your text-to-speech functionality here
+                 console.log('Play audio for:', message.text);
+                 }}
+                 className="absolute bottom-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"
+                 title="Play audio"
+              >
+                <Volume2 className="w-4 h-4 text-white" />
+              </button>
+              )}
+            </div>
             </div>
           ))}
 
