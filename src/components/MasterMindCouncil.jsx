@@ -200,7 +200,11 @@ const MasterMindCouncil = () => {
   // Pin-to-top staging state
 const [staging, setStaging] = useState(false);
 const [anchoredMessageId, setAnchoredMessageId] = useState(null);
-  
+
+// Add these new state variables
+const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // Track which message is playing
+const [speechSupported, setSpeechSupported] = useState(false);
+
 // Auto-scroll to top when screen changes
 useEffect(() => {
   window.scrollTo(0, 0);
@@ -232,6 +236,11 @@ useEffect(() => {
     }
   }, [currentScreen, conversationLoaded]);
 
+ // Check if speech synthesis is supported
+useEffect(() => {
+  setSpeechSupported('speechSynthesis' in window);
+}, []);
+  
   // Handle password toggle without losing input values
   const handlePasswordToggle = () => {
     const currentEmail = emailRef.current?.value || '';
@@ -249,6 +258,45 @@ useEffect(() => {
     }, 0);
   };
 
+  // Text-to-speech functionality
+const handleSpeakMessage = (messageId, text) => {
+  // Stop any currently playing speech
+  if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    setCurrentlyPlaying(null);
+    
+    // If clicking the same message that's playing, just stop
+    if (currentlyPlaying === messageId) {
+      return;
+    }
+  }
+
+  // Start new speech
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  // Configure the speech
+  utterance.rate = 0.9; // Slightly slower for clarity
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  
+  // Set up event handlers
+  utterance.onstart = () => {
+    setCurrentlyPlaying(messageId);
+  };
+  
+  utterance.onend = () => {
+    setCurrentlyPlaying(null);
+  };
+  
+  utterance.onerror = () => {
+    setCurrentlyPlaying(null);
+    console.error('Speech synthesis error');
+  };
+
+  // Start speaking
+  speechSynthesis.speak(utterance);
+};
+  
   // Handle login form submission with real API
   const handleLogin = async () => {
     const email = emailRef.current?.value?.trim();
@@ -1118,18 +1166,23 @@ while (true) {
               <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
   
              {/* Speaker button for assistant messages only */}
-             {message.sender === 'assistant' && (
-              <button
-                onClick={() => {
-                 // Add your text-to-speech functionality here
-                 console.log('Play audio for:', message.text);
-                 }}
-                 className="absolute bottom-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"
-                 title="Play audio"
-              >
-                <Volume2 className="w-4 h-4 text-white" />
-              </button>
-              )}
+             {message.sender === 'assistant' && speechSupported && (
+               <button
+                 onClick={() => handleSpeakMessage(message.id, message.text)}
+                 className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
+                   currentlyPlaying === message.id 
+                      ? 'bg-blue-500/30 text-blue-300' 
+                      : 'hover:bg-white/20 text-white'
+              }`}
+              title={currentlyPlaying === message.id ? "Stop audio" : "Play audio"}
+           >
+              {currentlyPlaying === message.id ? (
+                 <Pause className="w-4 h-4" />
+               ) : (
+                 <Volume2 className="w-4 h-4" />
+               )}
+            </button>
+           )}
             </div>
             </div>
           ))}
