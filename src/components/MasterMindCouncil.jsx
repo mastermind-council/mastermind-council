@@ -287,7 +287,7 @@ const handleSpeakMessage = async (messageId, text) => {
       },
       body: JSON.stringify({
         text: text,
-        voice: 'coral' // Dr. Kai's voice - you can change this
+        voice: 'sage' // Dr. Kai's voice - you can change this
       }),
     });
 
