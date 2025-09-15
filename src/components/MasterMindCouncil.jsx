@@ -184,13 +184,16 @@ const MasterMindCouncil = () => {
   const [conversationLoaded, setConversationLoaded] = useState(false);
   const stream = useStreamBuffer();
 
+  // Add these new state variables
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
+
   // Voice state
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Form state
   const [showPassword, setShowPassword] = useState(false);
-
   const messagesEndRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -198,12 +201,8 @@ const MasterMindCouncil = () => {
   const messagesContainerRef = useRef(null);
   
   // Pin-to-top staging state
-const [staging, setStaging] = useState(false);
-const [anchoredMessageId, setAnchoredMessageId] = useState(null);
-
-// Add these new state variables
-const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
-const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
+  const [staging, setStaging] = useState(false);
+  const [anchoredMessageId, setAnchoredMessageId] = useState(null);
 
 // Auto-scroll to top when screen changes
 useEffect(() => {
@@ -235,11 +234,6 @@ useEffect(() => {
       }
     }
   }, [currentScreen, conversationLoaded]);
-
- // Check if speech synthesis is supported
-useEffect(() => {
-  setSpeechSupported('speechSynthesis' in window);
-}, []);
   
   // Handle password toggle without losing input values
   const handlePasswordToggle = () => {
