@@ -254,6 +254,8 @@ useEffect(() => {
 
   // OpenAI TTS functionality
 const handleSpeakMessage = async (messageId, text) => {
+  console.log('🔊 Speaker button clicked:', messageId, text.substring(0, 50) + '...');
+  
   // Stop any currently playing audio
   if (currentlyPlaying) {
     const currentAudio = document.getElementById(`audio-${currentlyPlaying}`);
@@ -265,14 +267,18 @@ const handleSpeakMessage = async (messageId, text) => {
     
     // If clicking the same message that's playing, just stop
     if (currentlyPlaying === messageId) {
+      console.log('🛑 Stopping current audio');
       return;
     }
   }
 
   // Set loading state
   setAudioLoading(prev => new Set(prev).add(messageId));
+  console.log('⏳ Setting loading state for message:', messageId);
 
   try {
+    console.log('📡 Calling TTS API...');
+    
     // Call our TTS API
     const response = await fetch('/api/tts', {
       method: 'POST',
@@ -281,38 +287,46 @@ const handleSpeakMessage = async (messageId, text) => {
       },
       body: JSON.stringify({
         text: text,
-        voice: 'sage' // Dr. Kai's voice - you can change this
+        voice: 'coral'
       }),
     });
 
+    console.log('📡 TTS API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error('TTS generation failed');
+      throw new Error(`TTS generation failed: ${response.status}`);
     }
 
     // Get audio blob and create URL
     const audioBlob = await response.blob();
+    console.log('🎵 Audio blob created:', audioBlob.size, 'bytes');
+    
     const audioUrl = URL.createObjectURL(audioBlob);
+    console.log('🔗 Audio URL created:', audioUrl);
 
     // Create and play audio element
     const audio = new Audio(audioUrl);
     audio.id = `audio-${messageId}`;
     
     audio.onloadeddata = () => {
+      console.log('✅ Audio loaded, starting playback');
       setAudioLoading(prev => {
         const newSet = new Set(prev);
         newSet.delete(messageId);
         return newSet;
       });
       setCurrentlyPlaying(messageId);
-      audio.play();
+      audio.play().catch(err => console.error('❌ Audio play error:', err));
     };
 
     audio.onended = () => {
+      console.log('🏁 Audio playback ended');
       setCurrentlyPlaying(null);
-      URL.revokeObjectURL(audioUrl); // Clean up
+      URL.revokeObjectURL(audioUrl);
     };
 
-    audio.onerror = () => {
+    audio.onerror = (error) => {
+      console.error('❌ Audio error:', error);
       setCurrentlyPlaying(null);
       setAudioLoading(prev => {
         const newSet = new Set(prev);
@@ -320,11 +334,10 @@ const handleSpeakMessage = async (messageId, text) => {
         return newSet;
       });
       URL.revokeObjectURL(audioUrl);
-      console.error('Audio playback error');
     };
 
   } catch (error) {
-    console.error('TTS error:', error);
+    console.error('❌ TTS error:', error);
     setAudioLoading(prev => {
       const newSet = new Set(prev);
       newSet.delete(messageId);
