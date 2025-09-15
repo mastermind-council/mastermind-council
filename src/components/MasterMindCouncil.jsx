@@ -269,6 +269,11 @@ const MasterMindCouncil = () => {
     onCancel: cancelStaging,
   });
 
+  // Debug: Monitor staging state changes
+  useEffect(() => {
+    console.log('Staging state changed:', { staging, anchoredMessageId });
+  }, [staging, anchoredMessageId]);
+
   // Auto-scroll to top when screen changes
   useEffect(() => {
     window.scrollTo(0, 0);
