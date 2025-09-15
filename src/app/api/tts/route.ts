@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call OpenAI TTS API
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const openaiResponse = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -33,17 +33,17 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`OpenAI TTS API error: ${response.status}`);
+    if (!openaiResponse.ok) {
+      throw new Error(`OpenAI TTS API error: ${openaiResponse.status}`);
     }
 
-    // Return the audio file
-    const audioBuffer = await response.arrayBuffer();
+    // Get the audio data as ArrayBuffer
+    const audioData = await openaiResponse.arrayBuffer();
     
-    return new Response(audioBuffer, {
+    return new Response(audioData, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'public, max-age=3600',
       },
     });
 
