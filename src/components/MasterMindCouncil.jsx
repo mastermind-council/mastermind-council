@@ -186,6 +186,10 @@ const MasterMindCouncil = () => {
   const passwordRef = useRef(null);
   const chatInputRef = useRef(null);
 
+  // Pin-to-top staging state
+const [staging, setStaging] = useState(false);
+const [anchoredMessageId, setAnchoredMessageId] = useState(null);
+  
 // Auto-scroll to top when screen changes
 useEffect(() => {
   window.scrollTo(0, 0);
