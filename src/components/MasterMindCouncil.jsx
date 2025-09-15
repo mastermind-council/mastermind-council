@@ -1096,7 +1096,11 @@ while (true) {
           )}
 
           {messages.map((message) => (
-            <div key={message.id} className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div 
+             key={message.id} 
+             data-id={message.id}
+             className={`message-row flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'} ${anchoredMessageId === message.id ? 'anchor' : ''}`}
+            >
               <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                 message.sender === 'user'
                   ? 'bg-purple-600 text-white rounded-br-md'
