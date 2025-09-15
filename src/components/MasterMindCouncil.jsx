@@ -185,7 +185,8 @@ const MasterMindCouncil = () => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const chatInputRef = useRef(null);
-
+  const messagesContainerRef = useRef(null);
+  
   // Pin-to-top staging state
 const [staging, setStaging] = useState(false);
 const [anchoredMessageId, setAnchoredMessageId] = useState(null);
