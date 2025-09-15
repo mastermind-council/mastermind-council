@@ -184,7 +184,7 @@ const MasterMindCouncil = () => {
   const [conversationLoaded, setConversationLoaded] = useState(false);
   const stream = useStreamBuffer();
 
-  // Add these new state variables
+  // TTS state (ADD THESE)
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
 
