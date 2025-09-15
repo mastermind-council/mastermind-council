@@ -258,11 +258,15 @@ useEffect(() => {
     }, 0);
   };
 
-  // Text-to-speech functionality
-const handleSpeakMessage = (messageId, text) => {
-  // Stop any currently playing speech
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
+  // OpenAI TTS functionality
+const handleSpeakMessage = async (messageId, text) => {
+  // Stop any currently playing audio
+  if (currentlyPlaying) {
+    const currentAudio = document.getElementById(`audio-${currentlyPlaying}`);
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
     setCurrentlyPlaying(null);
     
     // If clicking the same message that's playing, just stop
@@ -271,30 +275,68 @@ const handleSpeakMessage = (messageId, text) => {
     }
   }
 
-  // Start new speech
-  const utterance = new SpeechSynthesisUtterance(text);
-  
-  // Configure the speech
-  utterance.rate = 0.9; // Slightly slower for clarity
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
-  
-  // Set up event handlers
-  utterance.onstart = () => {
-    setCurrentlyPlaying(messageId);
-  };
-  
-  utterance.onend = () => {
-    setCurrentlyPlaying(null);
-  };
-  
-  utterance.onerror = () => {
-    setCurrentlyPlaying(null);
-    console.error('Speech synthesis error');
-  };
+  // Set loading state
+  setAudioLoading(prev => new Set(prev).add(messageId));
 
-  // Start speaking
-  speechSynthesis.speak(utterance);
+  try {
+    // Call our TTS API
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+        voice: 'coral' // Dr. Kai's voice - you can change this
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('TTS generation failed');
+    }
+
+    // Get audio blob and create URL
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // Create and play audio element
+    const audio = new Audio(audioUrl);
+    audio.id = `audio-${messageId}`;
+    
+    audio.onloadeddata = () => {
+      setAudioLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+      setCurrentlyPlaying(messageId);
+      audio.play();
+    };
+
+    audio.onended = () => {
+      setCurrentlyPlaying(null);
+      URL.revokeObjectURL(audioUrl); // Clean up
+    };
+
+    audio.onerror = () => {
+      setCurrentlyPlaying(null);
+      setAudioLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+      URL.revokeObjectURL(audioUrl);
+      console.error('Audio playback error');
+    };
+
+  } catch (error) {
+    console.error('TTS error:', error);
+    setAudioLoading(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(messageId);
+      return newSet;
+    });
+  }
 };
   
   // Handle login form submission with real API
@@ -1165,24 +1207,35 @@ while (true) {
               </ReactMarkdown>                
               <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
   
-             {/* Speaker button for assistant messages only */}
-             {message.sender === 'assistant' && speechSupported && (
+             {/* OpenAI TTS Speaker button for assistant messages only */}
+             {message.sender === 'assistant' && (
                <button
                  onClick={() => handleSpeakMessage(message.id, message.text)}
+                 disabled={audioLoading.has(message.id)}
                  className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
                    currentlyPlaying === message.id 
-                      ? 'bg-blue-500/30 text-blue-300' 
-                      : 'hover:bg-white/20 text-white'
-              }`}
-              title={currentlyPlaying === message.id ? "Stop audio" : "Play audio"}
-           >
-              {currentlyPlaying === message.id ? (
-                 <Pause className="w-4 h-4" />
-               ) : (
-                 <Volume2 className="w-4 h-4" />
+                     ? 'bg-blue-500/30 text-blue-300' 
+                     : audioLoading.has(message.id)
+                     ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed'
+                     : 'hover:bg-white/20 text-white'
+                 }`}
+                 title={
+                   audioLoading.has(message.id) 
+                   ? "Generating audio..." 
+                   : currentlyPlaying === message.id 
+                   ? "Stop audio" 
+                   : "Play audio"
+                 }
+                >
+                 {audioLoading.has(message.id) ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : currentlyPlaying === message.id ? (
+                  <Pause className="w-4 h-4" />
+                  ) : (
+                  <Volume2 className="w-4 h-4" />
+                  )}
+                </button>
                )}
-            </button>
-           )}
             </div>
             </div>
           ))}
