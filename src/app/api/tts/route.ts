@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
       throw new Error(`OpenAI TTS API error: ${openaiResponse.status}`);
     }
 
-    // Get the audio data as ArrayBuffer
-    const audioData = await openaiResponse.arrayBuffer();
+    // Get the audio data and return it directly
+    const buffer = await openaiResponse.arrayBuffer();
     
-    return new Response(audioData, {
+    return new Response(buffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=3600',
@@ -50,13 +50,12 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('TTS API error:', error);
     
-    return new Response(audioData, {
-  headers: {
-    'Content-Type': 'audio/mpeg',
-    'Cache-Control': 'public, max-age=3600',
-    'Content-Security-Policy': "default-src 'self'; media-src 'self' blob: data:; script-src 'self' 'unsafe-eval' 'unsafe-inline';",
-    'Access-Control-Allow-Origin': '*',
-  },
-});
+    return new Response(JSON.stringify({ 
+      error: 'TTS generation failed',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
