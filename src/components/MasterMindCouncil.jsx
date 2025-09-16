@@ -188,6 +188,49 @@ const MasterMindCouncil = () => {
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
 
+  const playReply = async (replyId) => {
+  if (audioLoading.has(replyId) || currentlyPlaying === replyId) {
+    return;
+  }
+
+  const updatedLoading = new Set(audioLoading);
+  updatedLoading.add(replyId);
+  setAudioLoading(updatedLoading);
+
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ replyId }),
+    });
+
+    if (!res.ok) {
+      console.error("TTS fetch failed:", res.status);
+      return;
+    }
+
+    const buffer = await res.arrayBuffer();
+    const blob = new Blob([buffer], { type: "audio/mpeg" });
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+    setCurrentlyPlaying(replyId);
+
+    audio.onended = () => {
+      setCurrentlyPlaying(null);
+      URL.revokeObjectURL(url);
+    };
+
+    await audio.play();
+  } catch (err) {
+    console.error("Audio play error:", err);
+  } finally {
+    const updatedLoading = new Set(audioLoading);
+    updatedLoading.delete(replyId);
+    setAudioLoading(updatedLoading);
+  }
+};
+
   // Voice state
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
