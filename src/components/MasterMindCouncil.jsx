@@ -1222,7 +1222,7 @@ while (true) {
              {/* OpenAI TTS Speaker button for assistant messages only */}
              {message.sender === 'assistant' && (
                <button
-                 onClick={() => handleSpeakMessage(message.id, message.text)}
+                 onClick={() => playReply(message.id)}
                  disabled={audioLoading.has(message.id)}
                  className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
                    currentlyPlaying === message.id 
@@ -1230,24 +1230,24 @@ while (true) {
                      : audioLoading.has(message.id)
                      ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed'
                      : 'hover:bg-white/20 text-white'
-                 }`}
-                 title={
-                   audioLoading.has(message.id) 
+               }`}
+               title={
+                 audioLoading.has(message.id) 
                    ? "Generating audio..." 
                    : currentlyPlaying === message.id 
                    ? "Stop audio" 
                    : "Play audio"
                  }
-                >
-                 {audioLoading.has(message.id) ? (
+               >
+                {audioLoading.has(message.id) ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : currentlyPlaying === message.id ? (
+                 ) : currentlyPlaying === message.id ? (
                   <Pause className="w-4 h-4" />
                   ) : (
-                  <Volume2 className="w-4 h-4" />
+                   <Volume2 className="w-4 h-4" />
                   )}
                 </button>
-               )}
+             )}
             </div>
             </div>
           ))}
