@@ -201,7 +201,10 @@ const MasterMindCouncil = () => {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ replyId }),
+      body: JSON.stringify({
+        text: messageText, // ✅ This is what was missing!
+        voice: 'coral',     // Optional — default on backend
+        }),
     });
 
     if (!res.ok) {
@@ -1265,7 +1268,7 @@ while (true) {
              {/* OpenAI TTS Speaker button for assistant messages only */}
              {message.sender === 'assistant' && (
                <button
-                 onClick={() => playReply(message.id)}
+                 onClick={() => playReply(message.id, message.text)}
                  disabled={audioLoading.has(message.id)}
                  className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
                    currentlyPlaying === message.id 
