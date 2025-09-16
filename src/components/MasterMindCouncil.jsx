@@ -189,7 +189,7 @@ const MasterMindCouncil = () => {
   const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
 
   const playReply = async (replyId) => {
-  if (audioLoading.has(replyId) || currentlyPlaying === replyId) {
+  if (audioLoading.has(replyId,messageText) || currentlyPlaying === replyId) {
     return;
   }
 
