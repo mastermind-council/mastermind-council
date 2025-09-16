@@ -18,6 +18,5 @@ export function middleware(req: NextRequest) {
 
   // Set the CSP header directly
   res.headers.set("Content-Security-Policy", CSP);
-
   return res;
 }
