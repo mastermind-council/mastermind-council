@@ -1,23 +1,28 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-// Define your CSP as a constant for clarity
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
-  "font-src 'self' data:",
-  "media-src 'self' blob: data:",
-  "connect-src 'self' https://api.openai.com",
-  "object-src 'none'",
-].join("; ");
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Set the CSP header directly
-  res.headers.set("Content-Security-Policy", CSP);
-  res.headers.set("x-middleware-active", "true");
+  // Inject Content-Security-Policy header
+  res.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self';",
+      "script-src 'self' 'unsafe-inline';",
+      "style-src 'self' 'unsafe-inline';",
+      "media-src 'self' blob:;",
+      "img-src 'self' data: blob:;",
+      "connect-src *;",
+      "font-src 'self';",
+      "frame-src 'none';",
+    ].join(' ')
+  );
+
   return res;
 }
+
+// 👇 This ensures the middleware runs on all pages except _next and static assets
+export const config = {
+  matcher: ['/', '/((?!_next|.*\\..*|favicon.ico).*)'],
+};
