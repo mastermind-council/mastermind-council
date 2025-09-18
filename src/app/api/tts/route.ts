@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=3600',
         'Content-Length': buffer.byteLength.toString(), // 👈 Add this
+        'Access-Control-Allow-Origin': '*',
       },
     });
 
