@@ -211,21 +211,18 @@ const MasterMindCouncil = () => {
       console.error("TTS fetch failed:", res.status);
       return;
     }
-
-    const buffer = await res.arrayBuffer();
-    console.log("buffer size:", buffer.byteLength, "type:", res.headers.get("Content-Type"));
-    const blob = new Blob([buffer], { type: "audio/mpeg" });
-    const url = URL.createObjectURL(blob);
-
-    const audio = new Audio(url);
-    setCurrentlyPlaying(replyId);
-
-    audio.onended = () => {
-      setCurrentlyPlaying(null);
-      URL.revokeObjectURL(url);
-    };
-
-    await audio.play();
+  const data = await res.json();
+  const audio = new Audio();
+  audio.addEventListener('error', (e) => {
+      console.error('Audio playback error:', e);
+    });
+  audio.addEventListener('loadeddata', () => {
+      console.log('Audio loaded successfully');
+    });
+  audio.src = data.audioUrl;
+  await audio.play();
+    console.log('Audio playing...');
+    
   } catch (err) {
     console.error("Audio play error:", err);
   } finally {
