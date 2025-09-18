@@ -213,6 +213,7 @@ const MasterMindCouncil = () => {
     }
 
     const buffer = await res.arrayBuffer();
+    console.log("buffer size:", buffer.byteLength, "type:", res.headers.get("Content-Type"));
     const blob = new Blob([buffer], { type: "audio/mpeg" });
     const url = URL.createObjectURL(blob);
 
