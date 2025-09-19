@@ -211,18 +211,9 @@ const MasterMindCouncil = () => {
       console.error("TTS fetch failed:", res.status);
       return;
     }
-  const data = await res.json();
-  const audio = new Audio();
-  audio.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
-    });
-  audio.addEventListener('loadeddata', () => {
-      console.log('Audio loaded successfully');
-    });
-  audio.src = data.audioUrl;
-  await audio.play();
-    console.log('Audio playing...');
-    
+  const audioBlob = await res.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+  console.log(audioUrl)
   } catch (err) {
     console.error("Audio play error:", err);
   } finally {
