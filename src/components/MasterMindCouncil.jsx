@@ -187,15 +187,24 @@ const MasterMindCouncil = () => {
   // TTS state (ADD THESE)
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [audioLoading, setAudioLoading] = useState(new Set()); // Track which messages are loading audio
-
+  const [loadingId, setLoadingId] = useState(null);
+  const [playingId, setPlayingId] = useState(null);
+  const audioRef = useRef(null);
+  
   const playReply = async (replyId,messageText) => {
-  if (audioLoading.has(replyId) || currentlyPlaying === replyId) {
-    return;
+  if (playingId === replyId && audioRef.current) {
+   audioRef.current.pause();
+    setPlayingId(null);
+  return;
   }
-
-  const updatedLoading = new Set(audioLoading);
-  updatedLoading.add(replyId);
-  setAudioLoading(updatedLoading);
+  // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setPlayingId(null);
+    }
+    
+  setLoadingId(replyId);
 
   try {
     const res = await fetch("/api/tts", {
@@ -214,12 +223,21 @@ const MasterMindCouncil = () => {
   const audioBlob = await res.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
   console.log(audioUrl)
+  const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setPlayingId(null);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+      setPlayingId(msg.id);
+    
   } catch (err) {
     console.error("Audio play error:", err);
   } finally {
-    const updatedLoading = new Set(audioLoading);
-    updatedLoading.delete(replyId);
-    setAudioLoading(updatedLoading);
+      setLoadingId(null); 
   }
 };
 
@@ -1255,34 +1273,34 @@ while (true) {
               <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
   
              {/* OpenAI TTS Speaker button for assistant messages only */}
-             {message.sender === 'assistant' && (
-               <button
-                 onClick={() => playReply(message.id, message.text)}
-                 disabled={audioLoading.has(message.id)}
-                 className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
-                   currentlyPlaying === message.id 
-                     ? 'bg-blue-500/30 text-blue-300' 
-                     : audioLoading.has(message.id)
-                     ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed'
-                     : 'hover:bg-white/20 text-white'
-               }`}
-               title={
-                 audioLoading.has(message.id) 
-                   ? "Generating audio..." 
-                   : currentlyPlaying === message.id 
-                   ? "Stop audio" 
-                   : "Play audio"
-                 }
-               >
-                {audioLoading.has(message.id) ? (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                 ) : currentlyPlaying === message.id ? (
-                  <Pause className="w-4 h-4" />
-                  ) : (
-                   <Volume2 className="w-4 h-4" />
-                  )}
-                </button>
-             )}
+             {message.sender === "assistant" && (
+        <button
+onClick={() => playReply(message.id, message.text)}
+disabled={loadingId === message.id}
+className={`absolute bottom-2 right-2 p-1 rounded-full transition-colors ${
+playingId === message.id
+? "bg-blue-500/30 text-blue-500"
+: loadingId === message.id
+? "bg-gray-500/30 text-gray-400 cursor-not-allowed"
+: "hover:bg-white/20 text-white"
+}`}
+title={
+loadingId === message.id
+? "Generating audio..."
+: playingId === message.id
+? "Stop audio"
+: "Play audio"
+}
+>
+          {loadingId === message.id ? (
+<div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+) : playingId === message.id ? (
+<Pause className="w-4 h-4" />
+) : (
+<Volume2 className="w-4 h-4" />
+)}
+</button>
+)}
             </div>
             </div>
           ))}
