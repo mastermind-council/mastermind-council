@@ -39,10 +39,14 @@ export async function POST(request: NextRequest) {
 
     // Get the audio data and return it directly
     const buffer = await openaiResponse.arrayBuffer();
-    const base64Audio = buffer.toString('base64');
+    return new Response(buffer, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Content-Length": buffer.byteLength.toString(),
+        "Cache-Control": "public, max-age=3600",
+      },
+    })
     
-    return new Response(JSON.stringify({ audioUrl: `data:audio/mpeg;base64,${base64Audio}` }), { headers: { 'Content-Type': 'application/json', }, });
-
     
   } catch (error: any) {
     console.error('TTS API error:', error);
