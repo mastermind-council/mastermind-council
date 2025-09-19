@@ -223,7 +223,7 @@ const MasterMindCouncil = () => {
   const audioBlob = await res.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
   console.log(audioUrl)
-  const audio = new Audio(url);
+  const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       audio.onended = () => {
