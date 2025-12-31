@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, openId, name, email, role, loginMethod, createdAt, lastSignedIn FROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4Jfnp5c7jcKbJPV.e80ef30f58b8 --database TyUwwzrMAeMZNyTgsBGd87 --execute SELECT id, openId, name, email, role, loginMethod, createdAt, lastSignedIn FROM users;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "4mrujW3pBbYXc2haJMdk3g",
+      "name": "Kwame Anku",
+      "email": "kwameanku@gmail.com",
+      "role": "admin",
+      "loginMethod": "email",
+      "createdAt": "2025-12-25 04:03:16",
+      "lastSignedIn": "2025-12-25 04:03:18"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\trole\tloginMethod\tcreatedAt\tlastSignedIn\n1\t4mrujW3pBbYXc2haJMdk3g\tKwame Anku\tkwameanku@gmail.com\tadmin\temail\t2025-12-25 04:03:16\t2025-12-25 04:03:18\n",
+  "stderr": "",
+  "execution_time_ms": 85
+}

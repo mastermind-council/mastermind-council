@@ -1,0 +1,19 @@
+{
+  "query": "SELECT * FROM conversations;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4Jfnp5c7jcKbJPV.e80ef30f58b8 --database TyUwwzrMAeMZNyTgsBGd87 --execute SELECT * FROM conversations;",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "1",
+      "advisorId": "dr-kai",
+      "mode": "balanced",
+      "title": "Test conversation about productivity",
+      "lastMessageAt": "2025-12-25 04:19:45",
+      "createdAt": "2025-12-25 04:19:44"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tadvisorId\tmode\ttitle\tlastMessageAt\tcreatedAt\n1\t1\tdr-kai\tbalanced\tTest conversation about productivity\t2025-12-25 04:19:45\t2025-12-25 04:19:44\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

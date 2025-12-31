@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1766557823105,
+      "tag": "0000_lucky_blonde_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1766636141451,
+      "tag": "0001_last_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1766699672211,
+      "tag": "0002_superb_songbird",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "query": "SELECT id, conversationId, role, LEFT(content, 100) as content_preview, isVoice, createdAt FROM messages ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4Jfnp5c7jcKbJPV.e80ef30f58b8 --database TyUwwzrMAeMZNyTgsBGd87 --execute SELECT id, conversationId, role, LEFT(content, 100) as content_preview, isVoice, createdAt FROM messages ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "2",
+      "conversationId": "1",
+      "role": "assistant",
+      "content_preview": "Let me help you with that...",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "3",
+      "conversationId": "1",
+      "role": "user",
+      "content_preview": "Message 3",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "4",
+      "conversationId": "1",
+      "role": "assistant",
+      "content_preview": "Message 4",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "5",
+      "conversationId": "1",
+      "role": "user",
+      "content_preview": "Message 5",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "6",
+      "conversationId": "1",
+      "role": "assistant",
+      "content_preview": "Message 6",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "7",
+      "conversationId": "1",
+      "role": "user",
+      "content_preview": "Message 7",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "8",
+      "conversationId": "1",
+      "role": "assistant",
+      "content_preview": "Message 8",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    },
+    {
+      "id": "1",
+      "conversationId": "1",
+      "role": "user",
+      "content_preview": "How can I improve my morning routine?",
+      "isVoice": "0",
+      "createdAt": "2025-12-25 04:19:44"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tconversationId\trole\tcontent_preview\tisVoice\tcreatedAt\n2\t1\tassistant\tLet me help you with that...\t0\t2025-12-25 04:19:44\n3\t1\tuser\tMessage 3\t0\t2025-12-25 04:19:44\n4\t1\tassistant\tMessage 4\t0\t2025-12-25 04:19:44\n5\t1\tuser\tMessage 5\t0\t2025-12-25 04:19:44\n6\t1\tassistant\tMessage 6\t0\t2025-12-25 04:19:44\n7\t1\tuser\tMessage 7\t0\t2025-12-25 04:19:44\n8\t1\tassistant\tMessage 8\t0\t2025-12-25 04:19:44\n1\t1\tuser\tHow can I improve my morning routine?\t0\t2025-12-25 04:19:44\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}
